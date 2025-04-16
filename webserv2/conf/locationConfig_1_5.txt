@@ -1,0 +1,4 @@
+	location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2)$ {
+		root /var/www/html;  
+		try_files $uri $uri/ =404;  
+	}

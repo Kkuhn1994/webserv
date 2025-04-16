@@ -13,4 +13,6 @@ private:
 
     void deleteCommentsOfConfig();
     void extractServerBlocks();
+    void extractLocation(std::ifstream &file, int serverCount);
+    void extractLocationBlocks();
 };
