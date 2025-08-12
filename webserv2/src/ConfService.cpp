@@ -62,7 +62,7 @@ bool starts_with_server(const std::string &line)
 bool starts_with_location(const std::string &line)
 {
     std::string trimmed = ltrim(line);
-    return trimmed.rfind("location", 0) == 0; // prüft, ob "server" an Position 0 steht
+    return trimmed.rfind("location", 0) == 0; // prüft, ob "location" an Position 0 steht
 }
 
 std::string extractBlock(std::ifstream &in, int brace_count)

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ServerBlock.hpp"
 
 class ConfService

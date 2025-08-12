@@ -1,25 +1,35 @@
-NAME = webserv
+NAME		=	webserv
 
-SRCS = ConfService.cpp ServerBlock.cpp main.cpp
-OBJS = $(SRCS:.cpp=.o)
+CC				=	c++
+CXXFLAGS		=	-Werror -Wextra -Wall -I $(HEADER_DIR)
 
-CC = c++
-CFLAGS = -Wall -Wextra -Werror
+HEADER_DIR		=	./include/
+OBJ_DIR		=	./obj/
+SRC_DIR		=	./src/
+SOURCES		=	$(addprefix $(SRC_DIR),$(addsuffix .cpp,$(FILES)))
+OBJECTS		=	$(addprefix $(OBJ_DIR),$(addsuffix .o,$(FILES)))
+
+FILES	=	\
+			ConfService \
+			ServerBlock \
+			main
+
+
+$(NAME): $(OBJECTS)
+	@$(CC) $(CXXFLAGS) $(SOURCES) -o $@
+
+$(OBJ_DIR)%.o : $(SRC_DIR)%.cpp
+	@mkdir -p $(OBJ_DIR)
+	@$(CC) $(CXXFLAGS) -c $< -o $@
 
 all: $(NAME)
 
-.cpp.o:
-	$(CC) $(CFLAGS) -c $< -o $(<:.cpp=.o)
-
-$(NAME): $(OBJS)
-	$(CC) $(OBJS) $(CFLAGS) -o $(NAME)
-
 clean:
-	rm -rf $(OBJS)
+	@rm -rf $(OBJ_DIR)
 
 fclean: clean
-	rm -rf $(NAME)
+	@rm -f $(NAME)
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean make
