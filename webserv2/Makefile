@@ -26,9 +26,15 @@ all: $(NAME)
 
 clean:
 	@rm -rf $(OBJ_DIR)
+	@rm -rf conf/*ServerConfig*
+	@rm -rf conf/*locationConfig*
+	@rm -rf conf/*tempConfig*
 
 fclean: clean
 	@rm -f $(NAME)
+	@rm -rf conf/*ServerConfig*
+	@rm -rf conf/*locationConfig*
+	@rm -rf conf/*tempConfig*
 
 re: fclean all
 

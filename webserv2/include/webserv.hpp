@@ -1,3 +1,4 @@
+#pragma once
 #include "ConfService.hpp"
 #include "LocationRedirect.hpp"
 #include "ServerBlock.hpp"
