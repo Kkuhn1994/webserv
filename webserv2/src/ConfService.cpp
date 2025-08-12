@@ -13,11 +13,83 @@ ConfService::~ConfService()
     std::cout << "ConfService destroyed\n";
 }
 
+std::string ConfService::extractHostName(std::ifstream &serverFile)
+{
+	std::regex serverName(R"(server_name\s+([^\s;]+))");
+	std::string line;
+	while (std::getline(serverFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, serverName))
+		{
+			return match[1];
+		}
+	}
+	return "";
+}
+
+std::string ConfService::extractServerName(std::ifstream &serverFile)
+{
+	std::regex serverName(R"(server_name\s+([^\s;]+))");
+	std::string line;
+	while (std::getline(serverFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, serverName))
+		{
+			return match[1];
+		}
+	}
+	return "";
+}
+
+std::string ConfService::extractPort(std::ifstream &serverFile)
+{
+	std::regex ipv4Pattern(R"(listen\s+(\d+))");
+	std::string line;
+	while (std::getline(serverFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, ipv4Pattern))
+		{
+			return match[1];
+		}
+	}
+	return "";
+}
+
 void ConfService::initialize()
 {
+    int i = 1;
+
+    //create tempfiles
     deleteCommentsOfConfig();
     extractServerBlocks();
     extractLocationBlocks();
+    //create serverclasses
+    while (1)
+	{
+
+        std::string fileName = "conf/ServerConfig" + std::to_string(i) + ".txt";
+		std::ifstream serverFile(fileName);
+		if (!serverFile)
+        {
+        	break;
+        }
+
+		const std::string hostName = extractHostName(serverFile);
+		serverFile.clear();
+		serverFile.seekg(0, std::ios::beg);
+		const std::string serverName = extractServerName(serverFile);
+		serverFile.clear();
+		serverFile.seekg(0, std::ios::beg);
+		const std::string port = extractPort(serverFile);
+		ServerBlock *newBlock = new ServerBlock(std::stoi(port), serverName, hostName);
+		newBlock->initialize(i);
+		serverBlock.push_back(newBlock);
+        i ++;
+	}
+
 }
 
 void ConfService::deleteCommentsOfConfig()
@@ -135,12 +207,15 @@ void ConfService::extractLocationBlocks()
     while (1)
     {
         std::string fileName = "conf/ServerConfig" + std::to_string(counter) + ".txt";
-        std::cout << fileName << std::endl;
         std::ifstream file(fileName);
         if (!file)
             break;
         else
+        {
+            std::cout << fileName << std::endl;
             extractLocation(file, counter);
+        }
         counter++;
     }
+    std::cout << "\n";
 }
