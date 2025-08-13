@@ -13,6 +13,7 @@ FILES	=	\
 			ConfService \
 			ServerBlock \
 			LocationRedirect \
+			utility \
 			main
 
 
