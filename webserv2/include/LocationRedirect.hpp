@@ -25,8 +25,7 @@ private:
     std::vector<std::string> defaultTryFiles;
 
     std::string fastCGIPass;
-    std::string fastCGIParam1;
-    std::string fastCGIParam2;
+    std::map<std::string, std::string> fastCGIParam;
     std::string includeCGI;
 
     std::string extractUrl(std::ifstream &locationFile);

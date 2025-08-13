@@ -20,8 +20,11 @@ LocationRedirect::LocationRedirect(std::ifstream &locationFile)
     for (size_t i = 0; i < defaultTryFiles.size(); ++i) {
     std::cout << "  [" << i << "]: " << defaultTryFiles[i] << std::endl;
     }
-	std::cout << "FastCGIParam: " << fastCGIParam1 << std::endl;
-    std::cout << "FastCGIParam2: " <<  fastCGIParam2 << std::endl;
+	std::cout << "FastCGIParams: "  << std::endl;
+    for (const auto& pair : fastCGIParam) {
+        std::cout << pair.first << " : " << pair.second << std::endl;
+    }
+
     std::cout << "FastCGIPass: " << fastCGIPass  << std::endl;
 	std::cout << "includeCGI: " << includeCGI  << std::endl;
     std::cout << std::endl;
@@ -42,7 +45,8 @@ LocationRedirect::~LocationRedirect()
 }
 
 
-void LocationRedirect::extractCGIStuff(std::ifstream &locationFile) {
+void LocationRedirect::extractCGIStuff(std::ifstream &locationFile) 
+{
 	extractCGIPass(locationFile);
 	locationFile.clear();
 	locationFile.seekg(0, std::ios::beg);
@@ -62,28 +66,6 @@ void LocationRedirect::setCGIPass(std::string _fastCGIPass)
 std::string LocationRedirect::getCGIPass()
 {
     return fastCGIPass;
-}
-
-void LocationRedirect::setCGIParam1(std::string _fastCGIParam)
-{
-    fastCGIParam1 = _fastCGIParam;
-    // std::cout << fastCGIParam1 << std::endl;
-}
-
-std::string LocationRedirect::getCGIParam1()
-{
-    return fastCGIParam1;
-}
-
-void LocationRedirect::setCGIParam2(std::string _fastCGIParam)
-{
-    fastCGIParam2 = _fastCGIParam;
-    // std::cout << fastCGIParam2 << std::endl;
-}
-
-std::string LocationRedirect::getCGIParam2()
-{
-    return fastCGIParam2;
 }
 
 void LocationRedirect::setInclude(std::string _Include)
@@ -124,14 +106,10 @@ void LocationRedirect::extractCGIParams(std::ifstream &locationFile) {
 		std::smatch match;
 		if (std::regex_search(line, match, cgiPassRegex))
 		{
-			splitted = split(match[1], " ");
-            setCGIParam1(splitted[0]);
-            setCGIParam2(splitted[1]);
-            return;
+			splitted = split(match[1]);
+			fastCGIParam[splitted[0]] = splitted[1];
 		}
 	}
-	setCGIParam1("");
-    setCGIParam2("");
 }
 
 void LocationRedirect::extractInclude(std::ifstream &locationFile) {
@@ -192,7 +170,7 @@ std::vector<std::string> LocationRedirect::extractTryFiles(std::ifstream &locati
 		std::smatch match;
 		if (std::regex_search(line, match, locationRegex) && match.size() > 1)
 		{
-			files = split(match[1], " ");
+			files = split(match[1]);
 			return files;
 		}
 	}
