@@ -7,6 +7,7 @@
 #include "LocationRedirect.hpp"
 #include <regex>
 #include <fstream>
+#include "utility.hpp"
 
 
 class ServerBlock
@@ -21,9 +22,11 @@ private:
     const int port;
     const std::string serverName;
     const std::string host;
-    std::map<int, std::string> pathOfErrorFiles;
+
     std::vector<LocationRedirect *> location;
     std::string defaultFile;
+    std::map<int, std::string> pathOfErrorFiles;
     
     void initLocationRedirects(int blockNr);
+    void initErrorPages(std::ifstream &serverFile);
 };

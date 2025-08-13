@@ -4,6 +4,7 @@ LocationRedirect::LocationRedirect(std::ifstream &locationFile)
 {
 	std::string exceptionRequestRule;
 
+	std::cout << "\n";
 	url = extractUrl(locationFile);
 	locationFile.clear();
 	locationFile.seekg(0, std::ios::beg);
@@ -27,7 +28,7 @@ LocationRedirect::LocationRedirect(std::ifstream &locationFile)
 
     std::cout << "FastCGIPass: " << fastCGIPass  << std::endl;
 	std::cout << "includeCGI: " << includeCGI  << std::endl;
-    std::cout << std::endl;
+	
 }
 
 LocationRedirect::~LocationRedirect()

@@ -34,3 +34,16 @@ std::vector<std::string> split(const std::string &str)
 
     return tokens;
 }
+
+std::string resolveWildcardErrorCode(const std::string& errorCode, const std::string& pathToPage) 
+{
+    std::string result = pathToPage;
+    size_t codeIndex = errorCode.size() - 1;
+    for (size_t i = result.size(); i > 0; --i) {
+        if (result[i] == 'x' && codeIndex < errorCode.size()) {
+            result[i] = errorCode[codeIndex];  // Ersetze 'x' durch die aktuelle Ziffer
+            --codeIndex;
+        }
+    }
+    return result;
+}
