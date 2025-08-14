@@ -1,0 +1,5 @@
+	location /api {
+    limit_except GET {
+        deny all;
+    }
+}

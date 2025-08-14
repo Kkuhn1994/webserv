@@ -1,0 +1,9 @@
+location /api {
+    limit_except POST PUT DELETE {
+        allow 192.168.1.0/24;  
+        deny all;              
+        auth_basic "Admin Area";  
+        auth_basic_user_file /etc/nginx/.htpasswd;
+        limit_req zone=api_limit burst=10;  
+    }
+}

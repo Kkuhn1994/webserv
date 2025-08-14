@@ -5,6 +5,7 @@ LocationRedirect::LocationRedirect(std::ifstream &locationFile)
 	std::string exceptionRequestRule;
 
 	std::cout << "\n";
+	statusCode = 200;
 	url = extractUrl(locationFile);
 	locationFile.clear();
 	locationFile.seekg(0, std::ios::beg);
@@ -15,20 +16,29 @@ LocationRedirect::LocationRedirect(std::ifstream &locationFile)
 	locationFile.clear();
 	locationFile.seekg(0, std::ios::beg);
 	extractCGIStuff(locationFile);
-    std::cout << "URL: " << url << std::endl;
-    std::cout << "Root Path: " << rootPath << std::endl;
-    std::cout << "Default Try Files:" << std::endl;
-    for (size_t i = 0; i < defaultTryFiles.size(); ++i) {
-    std::cout << "  [" << i << "]: " << defaultTryFiles[i] << std::endl;
-    }
-	std::cout << "FastCGIParams: "  << std::endl;
-    for (const auto& pair : fastCGIParam) {
-        std::cout << pair.first << " : " << pair.second << std::endl;
-    }
+	locationFile.clear();
+	locationFile.seekg(0, std::ios::beg);
+	extractPossibleRequests(locationFile);
+    // std::cout << "URL: " << url << std::endl;
+    // std::cout << "Root Path: " << rootPath << std::endl;
+    // std::cout << "Default Try Files:" << std::endl;
+    // for (size_t i = 0; i < defaultTryFiles.size(); ++i) {
+    // std::cout << "  [" << i << "]: " << defaultTryFiles[i] << std::endl;
+    // }
+	// std::cout << "FastCGIParams: "  << std::endl;
+    // for (const auto& pair : fastCGIParam) {
+    //     std::cout << pair.first << " : " << pair.second << std::endl;
+    // }
+    // std::cout << "FastCGIPass: " << fastCGIPass  << std::endl;
+	// std::cout << "includeCGI: " << includeCGI  << std::endl;
+	std::cout << "Request Statuscode: " << statusCode  << std::endl;
+	std::cout << "Requestmessage: " << message  << std::endl;
+	std::cout << "allowed methods: "  << std::endl;
 
-    std::cout << "FastCGIPass: " << fastCGIPass  << std::endl;
-	std::cout << "includeCGI: " << includeCGI  << std::endl;
-	
+	for (const auto& method : allowedMethods) {
+		std::cout << "\033[1;33m" << method << "\033[0m" << std::endl;
+	}
+
 }
 
 LocationRedirect::~LocationRedirect()
@@ -176,4 +186,75 @@ std::vector<std::string> LocationRedirect::extractTryFiles(std::ifstream &locati
 		}
 	}
 	return files;
+}
+
+std::string LocationRedirect::extractExceptRequest(std::ifstream &locationFile)
+{
+	std::regex exceptRegex(R"(limit_except\s+[^{]+\{\s*([^}]+?)\s*\})");
+	std::string line;
+	std::string fileContent;
+
+	while (std::getline(locationFile, line))
+	{
+		fileContent += line + "\n";
+	}
+	std::smatch match;
+	if (std::regex_search(fileContent, match, exceptRegex))
+	{
+		if (match.size() > 1)
+		{ // Gruppe 1 enthält den Inhalt zwischen { }
+			std::string bracketContent = match[1].str();
+			bracketContent.erase(bracketContent.find_last_not_of(" \t\n\r\f\v") + 1);
+			bracketContent.erase(0, bracketContent.find_first_not_of(" \t\n\r\f\v"));
+			return bracketContent;
+		}
+	}
+	return "";
+}
+
+void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile)
+{
+	std::vector<std::string> request;
+	std::regex locationRegex(R"(limit_except\s+([^;]+))");
+	std::regex returnRegex(R"(return\s+(\d+)\s+\"([^\"]+)\";)");
+	std::string line;
+	std::string store;
+
+	while (std::getline(locationFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, locationRegex) && match.size() > 1)
+		{
+			std::cout << "\033[1;33mTest: StatusCode=" << "\033[0m" << std::endl;
+			request = split(match[1]);
+			request.pop_back();
+			allowedMethods = request;
+			locationFile.clear();
+			locationFile.seekg(0, std::ios::beg);
+			store = extractExceptRequest(locationFile);
+			if (store.find("deny all;") != std::string::npos)
+			{
+				statusCode = 403;
+				message = "Access denied by server configuration";
+				return ;
+			}
+			else
+			{
+				if (std::regex_search(line, match, returnRegex))
+				{
+					if (match.size() >= 3)
+					{
+						statusCode = std::stoi(match[1].str());
+						message = match[2].str();
+					}
+				}
+				else
+				{
+					statusCode = 403;
+					message = "Access denied";
+				}
+				return ;
+			}
+		}
+	}
 }

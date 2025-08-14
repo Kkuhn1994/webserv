@@ -28,14 +28,20 @@ private:
     std::map<std::string, std::string> fastCGIParam;
     std::string includeCGI;
 
+    std::vector<std::string> allowedMethods;
+    int statusCode;
+    std::string message;
+
     std::string extractUrl(std::ifstream &locationFile);
     std::string extractRoot(std::ifstream &locationFile);
     void extractCGIStuff(std::ifstream &locationFile);
     std::vector<std::string> extractTryFiles(std::ifstream &locationFile);
-
+    std::string extractExceptRequest(std::ifstream &locationFile);
+    void extractPossibleRequests(std::ifstream &locationFile);
     void extractCGIPass(std::ifstream &locationFile);
     void extractCGIParams(std::ifstream &locationFile);
     void extractInclude(std::ifstream &locationFile);
+    
     void setCGIPass(std::string _fastCGIPass);
     std::string getCGIPass();
     void setCGIParam1(std::string _fastCGIParam);
