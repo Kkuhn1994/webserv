@@ -4,7 +4,7 @@
 #include <string>
 
 // Mock classes for testing
-class MockServer {
+class MockServer : public Server {
 public:
     std::string ip;
     std::string port;
@@ -25,7 +25,7 @@ public:
     void setConf(MockServer* conf) { (void)conf; }
 };
 
-class MockClient {
+class MockClient : public Client {
 public:
     MockResponse* response;
     MockClient() { response = new MockResponse(); }

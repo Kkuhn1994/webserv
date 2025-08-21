@@ -2,7 +2,7 @@
 # Run from webserv2/tests/ directory
 
 CXX = g++
-CXXFLAGS = -std=c++98 -Wall -Wextra -Werror
+CXXFLAGS = -std=c++17 -Wall -Wextra -Werror
 INCLUDES = -I../include
 SRCDIR = ../src
 OBJDIR = ../obj
