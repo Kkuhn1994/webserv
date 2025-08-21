@@ -1,11 +1,11 @@
-#include "ConfService.hpp"
+#include "../include/ConfService.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
 
 ConfService::ConfService()
 {
-    std::cout << "ConfService created\n";
+    this->path = DEFAULT_CONFIG;
 }
 
 ConfService::~ConfService()
@@ -13,16 +13,92 @@ ConfService::~ConfService()
     std::cout << "ConfService destroyed\n";
 }
 
-void ConfService::initialize()
+std::string ConfService::extractHostName(std::ifstream &serverFile)
 {
+	std::regex serverName(R"(server_name\s+([^\s;]+))");
+	std::string line;
+	while (std::getline(serverFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, serverName))
+		{
+			return match[1];
+		}
+	}
+	return "";
+}
+
+std::string ConfService::extractServerName(std::ifstream &serverFile)
+{
+	std::regex serverName(R"(server_name\s+([^\s;]+))");
+	std::string line;
+	while (std::getline(serverFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, serverName))
+		{
+			return match[1];
+		}
+	}
+	return "";
+}
+
+std::string ConfService::extractPort(std::ifstream &serverFile)
+{
+	std::regex ipv4Pattern(R"(listen\s+(\d+))");
+	std::string line;
+	while (std::getline(serverFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, ipv4Pattern))
+		{
+			return match[1];
+		}
+	}
+	return "";
+}
+
+void ConfService::initialize(const std::string Path)
+{
+    int i = 1;
+
+    path = Path;
+    //create tempfiles
     deleteCommentsOfConfig();
     extractServerBlocks();
     extractLocationBlocks();
+    //create serverclasses
+    while (1)
+	{
+
+        std::string fileName = "conf/ServerConfig" + std::to_string(i) + ".txt";
+		std::ifstream serverFile(fileName);
+		if (!serverFile)
+        {
+        	break;
+        }
+
+		const std::string hostName = extractHostName(serverFile);
+		serverFile.clear();
+		serverFile.seekg(0, std::ios::beg);
+		const std::string serverName = extractServerName(serverFile);
+		serverFile.clear();
+		serverFile.seekg(0, std::ios::beg);
+		const std::string port = extractPort(serverFile);
+		ServerBlock newBlock(std::stoi(port), serverName, hostName);
+		newBlock.initialize(i);
+		serverBlock.push_back(newBlock);
+        i ++;
+        std::cout << "block nr " << i<< "\n";
+	}
+
 }
+
+
 
 void ConfService::deleteCommentsOfConfig()
 {
-    std::ifstream file("conf/nginxconf");
+    std::ifstream file(this->path);
     std::ofstream tempFile("conf/tempConfig.txt", std::ios::app);
     std::string line;
     while (std::getline(file, line))
@@ -82,6 +158,7 @@ std::string extractBlock(std::ifstream &in, int brace_count)
                 break;
         }
     }
+    std::cout << result << std::endl;
     return result;
 }
 
@@ -135,12 +212,15 @@ void ConfService::extractLocationBlocks()
     while (1)
     {
         std::string fileName = "conf/ServerConfig" + std::to_string(counter) + ".txt";
-        std::cout << fileName << std::endl;
         std::ifstream file(fileName);
         if (!file)
             break;
         else
+        {
+            std::cout << fileName << std::endl;
             extractLocation(file, counter);
+        }
         counter++;
     }
+    std::cout << "\n";
 }

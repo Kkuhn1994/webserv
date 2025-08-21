@@ -1,49 +1,50 @@
 #pragma once
 
-// #include <poll.h>
-// #include <vector>
-// #include <iostream>
-// #include <cstddef>
-// #include <limits>
-// #include <algorithm>
-// #include <fstream>
-// #include <sys/wait.h>
-// #include <sys/socket.h>
-// #include <arpa/inet.h>
-// #include <string>
-// #include <stdio.h>
-// #include <map>
-// #include <set>
-// #include <sstream>
+#include <poll.h>
+#include <vector>
+#include <iostream>
+#include <cstddef>
+#include <limits>
+#include <algorithm>
+#include <fstream>
+#include <sys/wait.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <string>
+#include <stdio.h>
+#include <map>
+#include <set>
+#include <sstream>
+#include <netdb.h>
 
-// #include "ConfService.hpp"
+#include "ConfService.hpp"
+#include "Client.hpp"
 
-// #define BUF_SIZE 1024
-// #define POLL_TIMEOUT 200
+#define BUF_SIZE 1024
+#define POLL_TIMEOUT 200
 
-// class WebServer
-// {
-// 	public:
-// 		WebServer(std::string config_path);
-// 		~WebServer();
+class WebServer
+{
+	public:
+		WebServer(const std::string Path);
+		~WebServer();
 
-// 		void		setupListeningSockets();
-// 		void		loopPollEvents();
+		void		openSockets();
+		void		loopPollEvents();
 
-// 	private:
+	private:
 
-// 		void		acceptClients(int server_fd);
-// 		void		sendResponse(int client_fd);
-// 		void		killClient(std::vector<struct pollfd>::iterator it);
+		void		acceptClients(int server_fd);
+		void		sendResponse(int client_fd);
+		void		killClient(std::vector<struct pollfd>::iterator it);
 
-// 		bool		deleteIfExists(std::string filename);
-// 		bool		validateFilename(std::string filename);
+		bool		deleteIfExists(std::string filename);
+		bool		validateFilename(std::string filename);
 
-// 		ConfService					config;
-// 		std::string					config_path;
-// 		std::map<struct pollfd>	poll_fds;
-// 		std::vector<int>			listening_socket_fds;
-// 		std::map<int, Client>		fds_clients;
-// 		std::map<int, SocketConfig>	configs;
-// 		int							listening_port_no;
-// };
+		ConfService					config;
+		std::string					config_path;
+		std::vector<struct pollfd>	poll_fds;
+		std::vector<int>			listening_socket_fds;
+		std::map<int, Client>		fds_clients;
+		int							_server;
+};
