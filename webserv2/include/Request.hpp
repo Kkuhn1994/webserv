@@ -34,6 +34,8 @@ enum RequestError {
 enum ChunkState {
     CHUNK_SIZE,
     CHUNK_DATA,
+    CHUNK_CRLF,
+    CHUNK_TRAILER,
     CHUNK_COMPLETE
 };
 
@@ -83,7 +85,7 @@ public:
     void clear();
 
 private:
-    std::map<const std::string, std::string> _m;
+    std::map<std::string, std::string> _m;
     std::string _body;
 
     // Serving and original path
@@ -149,3 +151,4 @@ private:
     
     void set_error(RequestError error);
 };
+
