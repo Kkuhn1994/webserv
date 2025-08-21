@@ -26,12 +26,14 @@ int main(int argc, char  *argv[])
 			if(argc == 2) 
 			{
 				WebServer server(argv[1]);
+				server.openSockets();
 			}
 			else 
 			{
 				WebServer server(DEFAULT_CONFIG);
+				server.openSockets();
 			}
-		server.openSockets();
+			
 		}
 		catch(const std::exception& e)
 		{
