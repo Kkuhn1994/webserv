@@ -18,6 +18,8 @@ public:
 
     void initialize(int blockNr);
 
+    int getPort() const;
+
 private:
     const int port;
     const std::string serverName;

@@ -10,8 +10,10 @@ public:
 
     void initialize();
 
+    std::vector<ServerBlock> getServerBlocks();
+
 private:
-    std::vector<ServerBlock *> serverBlock;
+    std::vector<ServerBlock> serverBlock;
 
     void deleteCommentsOfConfig();
     void extractServerBlocks();

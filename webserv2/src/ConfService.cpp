@@ -84,12 +84,17 @@ void ConfService::initialize()
 		serverFile.clear();
 		serverFile.seekg(0, std::ios::beg);
 		const std::string port = extractPort(serverFile);
-		ServerBlock *newBlock = new ServerBlock(std::stoi(port), serverName, hostName);
-		newBlock->initialize(i);
+		ServerBlock newBlock(std::stoi(port), serverName, hostName);
+		newBlock.initialize(i);
 		serverBlock.push_back(newBlock);
         i ++;
 	}
 
+}
+
+std::vector<ServerBlock> ConfService::getServerBlocks()
+{
+    return serverBlock;
 }
 
 void ConfService::deleteCommentsOfConfig()

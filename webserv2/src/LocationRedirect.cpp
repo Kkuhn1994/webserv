@@ -225,7 +225,6 @@ void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile)
 		std::smatch match;
 		if (std::regex_search(line, match, locationRegex) && match.size() > 1)
 		{
-			std::cout << "\033[1;33mTest: StatusCode=" << "\033[0m" << std::endl;
 			request = split(match[1]);
 			request.pop_back();
 			allowedMethods = request;

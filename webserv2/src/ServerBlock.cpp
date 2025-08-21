@@ -16,6 +16,11 @@ ServerBlock::~ServerBlock()
     std::cout << "ServerBlock destroyed\n";
 }
 
+int ServerBlock::getPort() const
+{
+	return port;
+}
+
 void ServerBlock::initLocationRedirects(int blockNr)
 {
 	int i = 0;
