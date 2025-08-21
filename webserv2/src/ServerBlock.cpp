@@ -21,6 +21,11 @@ int ServerBlock::getPort() const
 	return port;
 }
 
+ServerBlock& ServerBlock::operator=(const ServerBlock&)
+{
+	return *this;
+}
+
 void ServerBlock::initLocationRedirects(int blockNr)
 {
 	int i = 0;

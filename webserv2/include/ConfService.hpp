@@ -10,13 +10,14 @@ class ConfService
 {
 public:
     ConfService();
-    ConfService(const std::string path);
     ~ConfService();
+    
 
-    void initialize();
+    void initialize(const std::string path);
 
-    std::vector<ServerBlock> getServerBlocks();
+    // std::vector<ServerBlock> getServerBlocks();
 
+    std::vector<ServerBlock> serverBlock;
 private:
 
     std::string path;

@@ -1,12 +1,10 @@
 #include "../include/Server.hpp"
 
-WebServer::WebServer(const char *Path) : config_path (Path ? Path : DEFAULT_CONFIG)
+WebServer::WebServer(const std::string Path) : config_path(Path)
 {
-	if (Path)
-	{
-		this->config_path = Path;
-	}
-	// this.config = ConfService(/*this->config_path || ""*/);
+	// config = ConfService(this->config_path);
+
+	config.initialize(Path);
 
 	std::cout << "LAL\n";
 }

@@ -15,6 +15,7 @@ class ServerBlock
 public:
     ServerBlock(const int port, const std::string serverName, const std::string host);
     ~ServerBlock();
+    ServerBlock& operator=(const ServerBlock&);
 
     void initialize(int blockNr);
 

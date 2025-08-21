@@ -3,14 +3,9 @@
 #include <fstream>
 #include <string>
 
-ConfService::ConfService() : path(DEFAULT_CONFIG)
+ConfService::ConfService()
 {
-    std::cout << "ConfService created (default)\n";
-}
-
-ConfService::ConfService(const std::string Path) : path(Path)
-{
-    std::cout << "ConfService created (" << this->path << ")\n";
+    this->path = DEFAULT_CONFIG;
 }
 
 ConfService::~ConfService()
@@ -63,10 +58,11 @@ std::string ConfService::extractPort(std::ifstream &serverFile)
 	return "";
 }
 
-void ConfService::initialize()
+void ConfService::initialize(const std::string Path)
 {
     int i = 1;
 
+    path = Path;
     //create tempfiles
     deleteCommentsOfConfig();
     extractServerBlocks();
@@ -93,14 +89,12 @@ void ConfService::initialize()
 		newBlock.initialize(i);
 		serverBlock.push_back(newBlock);
         i ++;
+        std::cout << "block nr " << i<< "\n";
 	}
 
 }
 
-std::vector<ServerBlock> ConfService::getServerBlocks()
-{
-    return serverBlock;
-}
+
 
 void ConfService::deleteCommentsOfConfig()
 {

@@ -21,13 +21,15 @@ int main(int argc, char  *argv[])
 		}
 		fclose(file);
 	}
-	try
-	{
-		WebServer server(argv[1]);
-		server.openSockets();
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << "\e[2;5;240;23;23m" << "[WBSRV] ERROR: " << e.what() << "\e[0m" << std::endl;
+	if (argc == 2) {
+		try
+		{
+			WebServer server(argv[1]);
+			server.openSockets();
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << "\e[5;2;38;240;23;23m" << "[WBSRV] ERROR: " << e.what() << "\e[0m" << std::endl;
+		}
 	}
 }

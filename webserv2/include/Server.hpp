@@ -26,7 +26,7 @@
 class WebServer
 {
 	public:
-		WebServer(const char *Path);
+		WebServer(const std::string Path);
 		~WebServer();
 
 		void		openSockets();
