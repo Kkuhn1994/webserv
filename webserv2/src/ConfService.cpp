@@ -1,11 +1,16 @@
-#include "ConfService.hpp"
+#include "../include/ConfService.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
 
-ConfService::ConfService()
+ConfService::ConfService() : path(DEFAULT_CONFIG)
 {
-    std::cout << "ConfService created\n";
+    std::cout << "ConfService created (default)\n";
+}
+
+ConfService::ConfService(const std::string Path) : path(Path)
+{
+    std::cout << "ConfService created (" << this->path << ")\n";
 }
 
 ConfService::~ConfService()
@@ -22,7 +27,7 @@ void ConfService::initialize()
 
 void ConfService::deleteCommentsOfConfig()
 {
-    std::ifstream file("conf/nginxconf");
+    std::ifstream file(this->path);
     std::ofstream tempFile("conf/tempConfig.txt", std::ios::app);
     std::string line;
     while (std::getline(file, line))
@@ -82,6 +87,7 @@ std::string extractBlock(std::ifstream &in, int brace_count)
                 break;
         }
     }
+    std::cout << result << std::endl;
     return result;
 }
 

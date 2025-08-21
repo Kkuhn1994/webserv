@@ -12,6 +12,8 @@ public:
     ServerBlock(const int port, const std::string serverName, const std::string host);
     ~ServerBlock();
 
+    int getPort() const ;
+
 private:
     const int port;
     const std::string serverName;

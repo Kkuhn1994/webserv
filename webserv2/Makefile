@@ -12,6 +12,7 @@ OBJECTS		=	$(addprefix $(OBJ_DIR),$(addsuffix .o,$(FILES)))
 FILES	=	\
 			ConfService \
 			ServerBlock \
+			Server \
 			main
 
 
