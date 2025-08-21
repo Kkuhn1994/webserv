@@ -1,4 +1,4 @@
-#include "ServerBlock.hpp"
+#include "../include/ServerBlock.hpp"
 
 ServerBlock::ServerBlock(const int _port, const std::string _serverName,
                          const std::string _host)

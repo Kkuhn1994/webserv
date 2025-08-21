@@ -2,16 +2,18 @@
 
 int main(int argc, char  *argv[])
 {
-	ConfService config;
-
-	if (argc != 2)
+	if (argc > 2) // by subject either have the config as argument or default path i think we need to do both
 	{
-		std::cerr << "Error: invalid number of arguments, please enter only the path to the config file\n";
+		std::cerr << "Error: invalid number of arguments, please enter if used only the path to the config file\n";
 		exit(EXIT_FAILURE);
 	}
 	else
 	{
-		FILE* file = fopen(argv[1], "r");
+		FILE *file;
+		if (argc == 2)
+			file = fopen(argv[1], "r");
+		else
+			file = fopen(DEFAULT_CONFIG, "r");
 		if (!file)
 		{
 			std::cerr << "Error opening file: " << argv[1] << std::endl;
@@ -19,6 +21,13 @@ int main(int argc, char  *argv[])
 		}
 		fclose(file);
 	}
-
-    config.initialize();
+	try
+	{
+		WebServer server(argv[1]);
+		server.openSockets();
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "\e[2;5;240;23;23m" << "[WBSRV] ERROR: " << e.what() << "\e[0m" << std::endl;
+	}
 }

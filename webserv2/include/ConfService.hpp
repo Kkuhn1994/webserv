@@ -2,10 +2,15 @@
 
 #include "ServerBlock.hpp"
 
+#ifndef DEFAULT_CONFIG
+# define DEFAULT_CONFIG "conf/nginxconf"
+#endif
+
 class ConfService
 {
 public:
     ConfService();
+    ConfService(const std::string path);
     ~ConfService();
 
     void initialize();
@@ -13,7 +18,8 @@ public:
     std::vector<ServerBlock> getServerBlocks();
 
 private:
-    std::vector<ServerBlock> serverBlock;
+
+    std::string path;
 
     void deleteCommentsOfConfig();
     void extractServerBlocks();

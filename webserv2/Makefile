@@ -14,6 +14,7 @@ FILES	=	\
 			ServerBlock \
 			LocationRedirect \
 			utility \
+			Server \
 			main
 
 
