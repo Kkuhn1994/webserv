@@ -1,0 +1,189 @@
+server {
+	listen 443 ssl http2;
+	listen [::]:443 ssl http2;
+	
+	ssl_certificate /etc/nginx/ssl/nginx.crt;
+    ssl_certificate_key /etc/nginx/ssl/nginx.key;
+	ssl_protocols TLSv1.2 TLSv1.3;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	root /var/www/html;
+	
+	index index.php index.html index.htm index.nginx-debian.html;
+	server_name localhost;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+    location / {
+        try_files $uri $uri/ /index.php?$args;  
+    }
+    
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;  
+        fastcgi_pass wp-php:9000;  
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;  
+    }
+	
+	
+    
+	
+    
+    
+    
+    
+    
+    
+	location /adminer {
+		proxy_pass http://adminer:8080/adminer.php;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+	}
+	location /website {
+		proxy_pass http://static_site:81/;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+	}
+	
+	location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2)$ {
+		root /var/www/html;  
+		try_files $uri $uri/ =404;  
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}server {
+	listen 443 ssl http2;
+	listen [::]:443 ssl http2;
+	
+	ssl_certificate /etc/nginx/ssl/nginx.crt;
+    ssl_certificate_key /etc/nginx/ssl/nginx.key;
+	ssl_protocols TLSv1.2 TLSv1.3;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	root /var/www/html;
+	
+	index index.php index.html index.htm index.nginx-debian.html;
+	server_name localhost;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+    location / {
+        try_files $uri $uri/ /index.php?$args;  
+    }
+    
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;  
+        fastcgi_pass wp-php:9000;  
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;  
+    }
+	
+	
+    
+	
+    
+    
+    
+    
+    
+    
+	location /adminer {
+		proxy_pass http://adminer:8080/adminer.php;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+	}
+	location /website {
+		proxy_pass http://static_site:81/;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+	}
+	
+	location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2)$ {
+		root /var/www/html;  
+		try_files $uri $uri/ =404;  
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}

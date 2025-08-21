@@ -68,6 +68,7 @@ void ConfService::initialize(const std::string Path)
     extractServerBlocks();
     extractLocationBlocks();
     //create serverclasses
+
     while (1)
 	{
 
@@ -158,7 +159,6 @@ std::string extractBlock(std::ifstream &in, int brace_count)
                 break;
         }
     }
-    std::cout << result << std::endl;
     return result;
 }
 
