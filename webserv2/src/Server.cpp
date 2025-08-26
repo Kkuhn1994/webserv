@@ -3,7 +3,7 @@
 WebServer::WebServer(const std::string Path) : config_path(Path)
 {
 	// config = ConfService(this->config_path);
-
+	_server = 3;
 	config.initialize(Path);
 
 	std::cout << "LAL\n";
@@ -23,7 +23,9 @@ void WebServer::openSockets()
 		struct sockaddr_in	_address;
 
 		_address.sin_family = AF_INET;
-		_address.sin_addr.s_addr = htonl(INADDR_ANY);
+		
+		_address.sin_addr.s_addr = INADDR_ANY;
+		std::cout << htons(it->getPort()) << "\n\n";
 		_address.sin_port = htons(it.base()->getPort());
 		prtdb = getprotobyname("TCP");
 
@@ -35,6 +37,10 @@ void WebServer::openSockets()
 			throw std::runtime_error("Error setting server socket to non-blocking");
 		#endif
 		int optreturn = setsockopt(this->_server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+		std::cout << optreturn << "\n";
+		if (optreturn == -1) {
+			perror("setsockopt failed");
+		}
 		if (optreturn != 0)
 			throw std::runtime_error("Could not set socket options");
 		if (bind(listening_poll.fd, (struct sockaddr*)&(_address), sizeof(_address)) < 0)
