@@ -3,7 +3,11 @@
 WebServer::WebServer(const std::string Path) : config_path(Path)
 {
 	// config = ConfService(this->config_path);
-	_server = 3;
+	_server = socket(AF_INET, SOCK_STREAM, 0);
+    if (_server < 0) {
+        perror("socket failed");
+        return ;
+    }
 	config.initialize(Path);
 
 	std::cout << "LAL\n";
@@ -23,7 +27,7 @@ void WebServer::openSockets()
 		struct sockaddr_in	_address;
 
 		_address.sin_family = AF_INET;
-		
+	
 		_address.sin_addr.s_addr = INADDR_ANY;
 		std::cout << htons(it->getPort()) << "\n\n";
 		_address.sin_port = htons(it.base()->getPort());

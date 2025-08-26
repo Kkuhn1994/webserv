@@ -1,0 +1,6 @@
+location /api {
+    limit_except POST PUT DELETE {
+ 
+        deny all;              
+    }
+}
