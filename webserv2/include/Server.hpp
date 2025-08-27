@@ -33,7 +33,7 @@ class WebServer
 		void		loopPollEvents();
 
 	private:
-
+		void		acceptRequest(int index);
 		void		acceptClients(int server_fd);
 		void		sendResponse(int client_fd);
 		void		killClient(std::vector<struct pollfd>::iterator it);

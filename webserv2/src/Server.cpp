@@ -73,14 +73,54 @@ void WebServer::loopPollEvents()
 		for (size_t index = 0; index < poll_fds.size(); index ++)
 		{
 			if (poll_fds[index].revents & POLLIN) {
-				
+				acceptRequest(index);
 			} else if (poll_fds[index].revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";
 			} else if (poll_fds[index].revents & POLLHUP) {
 				std::cout << "Socket hung up (client disconnected).\n";
-			} else {
-				std::cout << "Unknown event occurred.\n";
 			}
 		}
 	}
+}
+
+void	WebServer::acceptRequest(int index)
+{
+	std::cout << "Request received (POLLIN)\n";
+   	struct sockaddr_in client_addr;
+    socklen_t addrlen = sizeof(client_addr);
+    
+    // Der Server akzeptiert die Verbindung und erhält den Client-Socket
+    int client_fd = accept(poll_fds[index].fd, (struct sockaddr*)&client_addr, &addrlen);
+    if (client_fd < 0) {
+        perror("accept failed");
+        return;
+    }
+    char buffer[1024];
+	std::string full_request = "";
+    
+    ssize_t bytes_received;
+    while ((bytes_received = recv(client_fd, buffer, sizeof(buffer), 0)) > 0) {
+        full_request.append(buffer, bytes_received);
+        if (full_request.find("\r\n\r\n") != std::string::npos) {
+            break; // Anfrage ist wahrscheinlich vollständig
+        }
+    }
+
+    if (bytes_received < 0) {
+        perror("recv failed");
+        close(client_fd);
+        return;
+    }
+
+    // Ausgabe des empfangenen Requests
+    std::cout << "Received request: " << full_request << std::endl;
+
+    // Null-terminate the received data to print it as a string (optional)
+    buffer[bytes_received] = '\0';
+    
+    // Ausgabe des empfangenen Requests (optional)
+    std::cout << "Received request: " << buffer << std::endl;
+
+    // Schließe den Client-Socket, wenn die Kommunikation abgeschlossen ist
+    close(client_fd);
 }
