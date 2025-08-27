@@ -29,7 +29,7 @@ void WebServer::openSockets()
 		_address.sin_family = AF_INET;
 	
 		_address.sin_addr.s_addr = INADDR_ANY;
-		std::cout << htons(it->getPort()) << "\n\n";
+		std::cout << htons(80) << "\n\n";
 		_address.sin_port = htons(it.base()->getPort());
 		prtdb = getprotobyname("TCP");
 
@@ -37,8 +37,8 @@ void WebServer::openSockets()
 		if (listening_poll.fd < 0)
 			throw std::runtime_error("socket: Error creating server socket");
 		#ifdef __APPLE__
-		if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
-			throw std::runtime_error("Error setting server socket to non-blocking");
+		// if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
+		// 	throw std::runtime_error("Error setting server socket to non-blocking");
 		#endif
 		int optreturn = setsockopt(this->_server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 		std::cout << optreturn << "\n";
@@ -49,7 +49,7 @@ void WebServer::openSockets()
 			throw std::runtime_error("Could not set socket options");
 		if (bind(listening_poll.fd, (struct sockaddr*)&(_address), sizeof(_address)) < 0)
 			throw std::runtime_error("Error binding server socket port");
-		int listenreturn = listen(this->_server, 3); // why 3
+		int listenreturn = listen(listening_poll.fd, SOMAXCONN); // why 3
 		if (listenreturn < 0)
 			throw std::runtime_error("Could not listen");
 		listening_poll.events = POLLIN;
@@ -58,5 +58,29 @@ void WebServer::openSockets()
 
 		std::cout << "Socket " << (index++) << " (FD " << listening_poll.fd
 				  << ") is listening on: " << "edit host here" << ":" << it.base()->getPort() << std::endl;
+	}
+}
+
+void WebServer::loopPollEvents()
+{
+	while(1)
+	{
+		int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
+        if (poll_count < 0)
+        {
+            throw std::runtime_error("Error with poll()");
+        }
+		for (size_t index = 0; index < poll_fds.size(); index ++)
+		{
+			if (poll_fds[index].revents & POLLIN) {
+				
+			} else if (poll_fds[index].revents & POLLERR) {
+				std::cout << "Socket error occurred.\n";
+			} else if (poll_fds[index].revents & POLLHUP) {
+				std::cout << "Socket hung up (client disconnected).\n";
+			} else {
+				std::cout << "Unknown event occurred.\n";
+			}
+		}
 	}
 }
