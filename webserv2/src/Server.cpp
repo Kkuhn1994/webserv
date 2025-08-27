@@ -29,7 +29,6 @@ void WebServer::openSockets()
 		_address.sin_family = AF_INET;
 	
 		_address.sin_addr.s_addr = INADDR_ANY;
-		std::cout << htons(80) << "\n\n";
 		_address.sin_port = htons(it.base()->getPort());
 		prtdb = getprotobyname("TCP");
 
@@ -89,7 +88,6 @@ void	WebServer::acceptRequest(int index)
    	struct sockaddr_in client_addr;
     socklen_t addrlen = sizeof(client_addr);
     
-    // Der Server akzeptiert die Verbindung und erhält den Client-Socket
     int client_fd = accept(poll_fds[index].fd, (struct sockaddr*)&client_addr, &addrlen);
     if (client_fd < 0) {
         perror("accept failed");
@@ -105,22 +103,23 @@ void	WebServer::acceptRequest(int index)
             break; // Anfrage ist wahrscheinlich vollständig
         }
     }
-
     if (bytes_received < 0) {
         perror("recv failed");
         close(client_fd);
         return;
     }
-
-    // Ausgabe des empfangenen Requests
-    std::cout << "Received request: " << full_request << std::endl;
-
-    // Null-terminate the received data to print it as a string (optional)
-    buffer[bytes_received] = '\0';
-    
-    // Ausgabe des empfangenen Requests (optional)
-    std::cout << "Received request: " << buffer << std::endl;
-
-    // Schließe den Client-Socket, wenn die Kommunikation abgeschlossen ist
+    std::cout << full_request << std::endl;
+	const char *response = 
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/plain; charset=UTF-8\r\n"
+        "Content-Length: 44\r\n"
+        "\r\n"
+        "Server-Antwort: Anfrage erfolgreich empfangen und wird bearbeitet.";
+	if (sendto(client_fd, response, strlen(response), 0, 
+               (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
+        perror("Fehler beim Senden der Antwort");
+        close(client_fd);
+        return ;
+    }
     close(client_fd);
 }
