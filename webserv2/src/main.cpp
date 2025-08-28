@@ -27,11 +27,13 @@ int main(int argc, char  *argv[])
 			{
 				WebServer server(argv[1]);
 				server.openSockets();
+				server.loopPollEvents();
 			}
 			else 
 			{
 				WebServer server(DEFAULT_CONFIG);
 				server.openSockets();
+				server.loopPollEvents();
 			}
 			
 		}

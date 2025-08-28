@@ -1,7 +1,7 @@
 NAME		=	webserv
 
 CC				=	c++
-CXXFLAGS		=	-Werror -Wextra -Wall -I $(HEADER_DIR)
+CXXFLAGS		=	 -I $(HEADER_DIR)
 
 HEADER_DIR		=	./include/
 OBJ_DIR		=	./obj/
