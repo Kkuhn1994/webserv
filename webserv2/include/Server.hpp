@@ -34,8 +34,8 @@ class WebServer
 
 	private:
 		void		acceptRequest(int index);
-		void		acceptClients(int server_fd);
-		void		sendResponse(int client_fd);
+	//	void		acceptClients(int server_fd);
+		void		sendResponse();
 		void		killClient(std::vector<struct pollfd>::iterator it);
 
 		bool		deleteIfExists(std::string filename);
@@ -43,8 +43,11 @@ class WebServer
 
 		ConfService					config;
 		std::string					config_path;
+		std::string					full_request;
 		std::vector<struct pollfd>	poll_fds;
 		std::vector<int>			listening_socket_fds;
 		std::map<int, Client>		fds_clients;
 		int							_server;
+		int 						client_fd;
+		struct sockaddr_in 			client_addr;
 };

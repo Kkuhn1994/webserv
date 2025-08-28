@@ -1,6 +1,6 @@
 #include "../include/Server.hpp"
 
-WebServer::WebServer(const std::string Path) : config_path(Path)
+WebServer::WebServer(const std::string Path) : config_path(Path), full_request("")
 {
 	// config = ConfService(this->config_path);
 	_server = socket(AF_INET, SOCK_STREAM, 0);
@@ -73,6 +73,7 @@ void WebServer::loopPollEvents()
 		{
 			if (poll_fds[index].revents & POLLIN) {
 				acceptRequest(index);
+				sendResponse();
 			} else if (poll_fds[index].revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";
 			} else if (poll_fds[index].revents & POLLHUP) {
@@ -82,19 +83,18 @@ void WebServer::loopPollEvents()
 	}
 }
 
-void	WebServer::acceptRequest(int index)
+void		WebServer::acceptRequest(int index)
 {
 	std::cout << "Request received (POLLIN)\n";
-   	struct sockaddr_in client_addr;
     socklen_t addrlen = sizeof(client_addr);
     
-    int client_fd = accept(poll_fds[index].fd, (struct sockaddr*)&client_addr, &addrlen);
+    client_fd = accept(poll_fds[index].fd, (struct sockaddr*)&client_addr, &addrlen);
     if (client_fd < 0) {
         perror("accept failed");
         return;
     }
     char buffer[1024];
-	std::string full_request = "";
+	full_request = "";
     
     ssize_t bytes_received;
     while ((bytes_received = recv(client_fd, buffer, sizeof(buffer), 0)) > 0) {
@@ -108,13 +108,19 @@ void	WebServer::acceptRequest(int index)
         close(client_fd);
         return;
     }
-    std::cout << full_request << std::endl;
+}
+
+void		WebServer::sendResponse()
+{
+	
+	std::cout << full_request << "\n";
+
 	const char *response = 
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/plain; charset=UTF-8\r\n"
-        "Content-Length: 44\r\n"
-        "\r\n"
-        "Server-Antwort: Anfrage erfolgreich empfangen und wird bearbeitet.";
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Type: text/html; charset=UTF-8\r\n"
+		"Content-Length: 345\r\n"
+		"\r\n";
+
 	if (sendto(client_fd, response, strlen(response), 0, 
                (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
         perror("Fehler beim Senden der Antwort");
