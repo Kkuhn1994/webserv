@@ -41,7 +41,7 @@ void ServerBlock::initLocationRedirects(int blockNr)
 		std::ifstream locationRedirectFile(fileName);
 		if (!locationRedirectFile)
 			break;
-		LocationRedirect *redirect = new LocationRedirect(locationRedirectFile);
+		LocationRedirect redirect(locationRedirectFile);
 		location.push_back(redirect);
 	}
 }
@@ -108,4 +108,35 @@ void ServerBlock::initIndexFiles(std::ifstream &serverFile)
 std::vector<std::string> ServerBlock::getIndexFiles()
 {
 	return indexFiles;
+}
+
+std::string getBestPath(std::string path1, std::string path2)
+{
+	std::vector<std::string> path1Parts = pathSplit(path1);
+}
+
+LocationRedirect *ServerBlock::getBestMatchingLocation(std::string path)
+{
+	int highest_match = 0;
+	int highest_match_new = 0;
+	int highest_match_index = 0;
+	int index = 0;
+	
+	for (std::vector<LocationRedirect>::iterator it = location.begin(); it != location.end(); it++)
+	{
+		std::string locationPath = it.base()->getUrl();
+		std::string match = ""; 
+		highest_match_new = path.compare(match);
+		if(highest_match_new > highest_match)
+		{
+			if(highest_match_new == 1 && locationPath.length() == 1)
+			{
+				highest_match = highest_match_new;
+				highest_match_index = index;
+			}
+
+		}
+		index ++;
+	}
+	return NULL;
 }

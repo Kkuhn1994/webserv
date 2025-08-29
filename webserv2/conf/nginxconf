@@ -230,9 +230,9 @@ location /api {
 #     }
 
 #     # Statische Dateien direkt ausliefern
-#     location / {
-#         try_files $uri $uri/ /index.php?$args;
-#     }
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
 
 #     # Fehlerseiten
 #     error_page 404 /404.html;

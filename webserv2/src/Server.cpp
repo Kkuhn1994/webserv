@@ -112,8 +112,6 @@ void		WebServer::acceptRequest(int index)
 
 void		WebServer::sendResponse(int index)
 {
-	std::cout << full_request << "\n";
-
 	req.add(full_request);
 	buildResponseBody(index);
 	// std::cout << "get_path(): " << req.get_path() << std::endl;
@@ -128,14 +126,15 @@ void		WebServer::sendResponse(int index)
     // std::cout << "get_req(): " << req.get_request() << std::endl;
 	// std::cout << req.get_path() << "\n";
 
-
-
 	std::string  response = 
-		responseBody;
+		    std::string("HTTP/1.1 200 OK\r\n") +
+			"Content-Type: text/html; charset=UTF-8\r\n" +
+			 "Content-Length: " + std::to_string(responseBody.length()) + "\r\n" +
+			"\r\n" +
+			responseBody;
 	char* c_response = new char[response.length() + 1];
 	std::strcpy(c_response, response.c_str());
-	std::cout << c_response << "\n";
-	if (sendto(client_fd, c_response, strlen(c_response), 0, 
+	if (sendto(client_fd, c_response, response.length(), 0, 
                (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
         perror("Fehler beim Senden der Antwort");
         close(client_fd);
@@ -144,21 +143,12 @@ void		WebServer::sendResponse(int index)
     close(client_fd);
 }
 
-std::string extractFile(std::ifstream &in)
-{
-	std::string text = "";
-	std::string line;
-	while (std::getline(in, line))
-	{
-		text += line;
-		text += "\n";
-	}
-	return text;
-}
+
 
 void		WebServer::buildResponseBody(int index)
 {
-	std::cout << "test";
+	LocationRedirect *location = config.serverBlock[index].getBestMatchingLocation(req.get_path());
+	
 	if(req.get_path() == "/")
 	{
 		std::vector<std::string> indexFiles = config.serverBlock[index].getIndexFiles();

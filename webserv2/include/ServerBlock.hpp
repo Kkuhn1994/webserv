@@ -21,13 +21,14 @@ public:
 
     int getPort() const;
     std::vector<std::string> getIndexFiles();
+    LocationRedirect *getBestMatchingLocation(std::string path);
 
 private:
     const int port;
     const std::string serverName;
     const std::string host;
 
-    std::vector<LocationRedirect *> location;
+    std::vector<LocationRedirect> location;
     std::vector<std::string>        indexFiles;
     std::string defaultFile;
     std::map<int, std::string> pathOfErrorFiles;
@@ -35,4 +36,5 @@ private:
     void initLocationRedirects(int blockNr);
     void initErrorPages(std::ifstream &serverFile);
     void initIndexFiles(std::ifstream &serverFile);
+
 };
