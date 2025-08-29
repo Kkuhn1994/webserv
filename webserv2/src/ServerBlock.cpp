@@ -110,9 +110,23 @@ std::vector<std::string> ServerBlock::getIndexFiles()
 	return indexFiles;
 }
 
-std::string getBestPath(std::string path1, std::string path2)
+int pathMatch(std::string path1, std::string path2)
 {
+	int pathMatch = 1;
+	int index = 0;
 	std::vector<std::string> path1Parts = pathSplit(path1);
+	std::vector<std::string> path2Parts = pathSplit(path2);
+	for (std::vector<std::string>::iterator it = path1Parts.begin(); it != path1Parts.end(); it++)
+	{
+		// std::cout << path2Parts[index] << "\n";
+		if(*it.base() != path2Parts[index])
+		{
+			return pathMatch;
+		}
+		pathMatch += path2Parts[index].length();
+		index ++;
+	}
+	return pathMatch - 1;
 }
 
 LocationRedirect *ServerBlock::getBestMatchingLocation(std::string path)
@@ -125,11 +139,11 @@ LocationRedirect *ServerBlock::getBestMatchingLocation(std::string path)
 	for (std::vector<LocationRedirect>::iterator it = location.begin(); it != location.end(); it++)
 	{
 		std::string locationPath = it.base()->getUrl();
-		std::string match = ""; 
-		highest_match_new = path.compare(match);
+		highest_match_new = pathMatch(path, locationPath);
 		if(highest_match_new > highest_match)
 		{
-			if(highest_match_new == 1 && locationPath.length() == 1)
+
+			if(highest_match_new == 1 && locationPath.length() == 1 || highest_match_new > 1)
 			{
 				highest_match = highest_match_new;
 				highest_match_index = index;
@@ -137,6 +151,11 @@ LocationRedirect *ServerBlock::getBestMatchingLocation(std::string path)
 
 		}
 		index ++;
+	}
+	if(highest_match != 0)
+	{
+		std::cout << highest_match << "\n\n";
+		return &location[highest_match_index];
 	}
 	return NULL;
 }

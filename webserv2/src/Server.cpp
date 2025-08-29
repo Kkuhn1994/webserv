@@ -108,10 +108,12 @@ void		WebServer::acceptRequest(int index)
         close(client_fd);
         return;
     }
+	std::cout << "test2\n";
 }
 
 void		WebServer::sendResponse(int index)
 {
+	std::cout << full_request << "\n";
 	req.add(full_request);
 	buildResponseBody(index);
 	// std::cout << "get_path(): " << req.get_path() << std::endl;
@@ -141,16 +143,17 @@ void		WebServer::sendResponse(int index)
         return ;
     }
     close(client_fd);
+	req.clear();
 }
 
 
 
 void		WebServer::buildResponseBody(int index)
 {
+	std::cout << req.get_path() << " path\n";
 	LocationRedirect *location = config.serverBlock[index].getBestMatchingLocation(req.get_path());
-	
-	if(req.get_path() == "/")
-	{
+	// if(req.get_path() == "/")
+	// {
 		std::vector<std::string> indexFiles = config.serverBlock[index].getIndexFiles();
 		//try index files
         for (const auto& file : indexFiles)
@@ -162,7 +165,7 @@ void		WebServer::buildResponseBody(int index)
 			}
 			responseBody = extractFile(indexFile);
         }
-	}
+	// }
 }
 
 
