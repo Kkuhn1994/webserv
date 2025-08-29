@@ -57,6 +57,9 @@ void ServerBlock::initialize(int blockNr)
 	initErrorPages(serverFile);
 	serverFile.clear();
 	serverFile.seekg(0, std::ios::beg);
+	initIndexFiles(serverFile);
+	serverFile.clear();
+	serverFile.seekg(0, std::ios::beg);
 	for (const auto& pair : pathOfErrorFiles) {
         std::cout << pair.first << " : " << pair.second << std::endl;
     }
@@ -84,4 +87,25 @@ void ServerBlock::initErrorPages(std::ifstream &serverFile)
 			}
 		}
 	}
+}
+
+void ServerBlock::initIndexFiles(std::ifstream &serverFile)
+{
+	std::regex pattern(R"(index\s+([^;]+))");
+	std::string line;
+	while (std::getline(serverFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, pattern))
+		{
+			std::cout << match[1];
+			indexFiles = split(match[1]);
+			return;
+		}
+	}
+}
+
+std::vector<std::string> ServerBlock::getIndexFiles()
+{
+	return indexFiles;
 }

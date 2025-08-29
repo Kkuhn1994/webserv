@@ -124,9 +124,9 @@ bool Request::body_complete() const
     return _body_complete;
 }
 
-void Request::add(Client* client, Server* conf_o, std::string new_request)
+void Request::add(std::string new_request)
 {
-    _valid = addp(client, conf_o, new_request);
+    _valid = addp(new_request);
     
     if (_valid == 0 && _end == true && _method == "POST")
     {
@@ -168,7 +168,7 @@ void Request::clear()
     init_header_map();
 }
 
-int Request::addp(Client* client, Server* conf_o, std::string r)
+int Request::addp(std::string r)
 {
     std::string::size_type nl;
         if (_request == "" && r == "\r\n")
@@ -194,7 +194,7 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
         // End of headers
         else if (current_line.empty() && _request.find("\r\n\r\n") == std::string::npos)
         {
-            int ret = checkHeader(client, conf_o, r);
+            int ret = checkHeader(r);
             if (ret != -1)
                 return ret;
         }
@@ -242,11 +242,10 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
     return 0;
 }
 
-int Request::checkHeader(Client *client, Server *conf_o, std::string r)
+int Request::checkHeader(std::string r)
 {
     (void)r;
-    (void)client;
-    (void)conf_o;
+
     
     _path_o = _path;
     if (_method == "GET" || _method == "DELETE")

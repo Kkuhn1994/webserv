@@ -20,6 +20,7 @@ public:
     void initialize(int blockNr);
 
     int getPort() const;
+    std::vector<std::string> getIndexFiles();
 
 private:
     const int port;
@@ -27,9 +28,11 @@ private:
     const std::string host;
 
     std::vector<LocationRedirect *> location;
+    std::vector<std::string>        indexFiles;
     std::string defaultFile;
     std::map<int, std::string> pathOfErrorFiles;
     
     void initLocationRedirects(int blockNr);
     void initErrorPages(std::ifstream &serverFile);
+    void initIndexFiles(std::ifstream &serverFile);
 };

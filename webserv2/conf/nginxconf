@@ -88,9 +88,9 @@ server {
 	# }
 
 
-    location / {
-        try_files $uri $uri/ /index.php?$args;  # WordPress-spezifische Weiterleitung
-    }
+    # location / {
+    #     try_files $uri $uri/ /index.php?$args;  # WordPress-spezifische Weiterleitung
+    # }
 
 
     # PHP-Dateien verarbeiten

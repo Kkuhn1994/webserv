@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Server.hpp"
+// #include "Server.hpp"
 #include <iostream>
 #include <string>
 #include <map>
@@ -80,7 +80,7 @@ public:
     bool body_complete() const;
     
     // Main operations
-    void add(Client* client, Server* conf_o, std::string new_request);
+    void add(std::string new_request);
     
     void clear();
 
@@ -118,9 +118,9 @@ private:
     size_t      _header_count;
     
     // parsing
-    int addp(Client* client, Server* conf_o, std::string r);
+    int addp(std::string r);
 
-    int checkHeader(Client* client, Server* conf_o, std::string r);
+    int checkHeader(std::string r);
     
     int checkHost(std::string ip, std::string port, std::vector<std::string> server_name);
     

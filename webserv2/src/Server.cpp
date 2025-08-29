@@ -73,7 +73,7 @@ void WebServer::loopPollEvents()
 		{
 			if (poll_fds[index].revents & POLLIN) {
 				acceptRequest(index);
-				sendResponse();
+				sendResponse(index);
 			} else if (poll_fds[index].revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";
 			} else if (poll_fds[index].revents & POLLHUP) {
@@ -110,18 +110,32 @@ void		WebServer::acceptRequest(int index)
     }
 }
 
-void		WebServer::sendResponse()
+void		WebServer::sendResponse(int index)
 {
-	
 	std::cout << full_request << "\n";
 
-	const char *response = 
-		"HTTP/1.1 200 OK\r\n"
-		"Content-Type: text/html; charset=UTF-8\r\n"
-		"Content-Length: 345\r\n"
-		"\r\n";
+	req.add(full_request);
+	buildResponseBody(index);
+	// std::cout << "get_path(): " << req.get_path() << std::endl;
+    // std::cout << "get_path_o(): " << req.get_path_o() << std::endl;
 
-	if (sendto(client_fd, response, strlen(response), 0, 
+    // // Content getters
+    // std::cout << "get_body(): " << req.get_body() << std::endl;
+    // std::cout << "get_method_enum(): " << req.get_method_enum() << std::endl;
+    // std::cout << "get_method(): " << req.get_method() << std::endl;
+    // std::cout << "get_version(): " << req.get_version() << std::endl;
+    // std::cout << "get_header(\"example_key\"): " << req.get_header("example_key") << std::endl;
+    // std::cout << "get_req(): " << req.get_request() << std::endl;
+	// std::cout << req.get_path() << "\n";
+
+
+
+	std::string  response = 
+		responseBody;
+	char* c_response = new char[response.length() + 1];
+	std::strcpy(c_response, response.c_str());
+	std::cout << c_response << "\n";
+	if (sendto(client_fd, c_response, strlen(c_response), 0, 
                (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
         perror("Fehler beim Senden der Antwort");
         close(client_fd);
@@ -129,3 +143,37 @@ void		WebServer::sendResponse()
     }
     close(client_fd);
 }
+
+std::string extractFile(std::ifstream &in)
+{
+	std::string text = "";
+	std::string line;
+	while (std::getline(in, line))
+	{
+		text += line;
+		text += "\n";
+	}
+	return text;
+}
+
+void		WebServer::buildResponseBody(int index)
+{
+	std::cout << "test";
+	if(req.get_path() == "/")
+	{
+		std::vector<std::string> indexFiles = config.serverBlock[index].getIndexFiles();
+		//try index files
+        for (const auto& file : indexFiles)
+        {
+			std::ifstream indexFile("webcontent/" + file);
+			if (!indexFile)
+			{
+				continue;
+			}
+			responseBody = extractFile(indexFile);
+        }
+	}
+}
+
+
+
