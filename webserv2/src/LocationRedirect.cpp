@@ -1,6 +1,6 @@
 #include "LocationRedirect.hpp"
 
-LocationRedirect::LocationRedirect(std::ifstream &locationFile)
+LocationRedirect::LocationRedirect(std::ifstream &locationFile) : rootPath("")
 {
 	std::string exceptionRequestRule;
 
@@ -261,4 +261,9 @@ void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile)
 std::string LocationRedirect::getUrl()
 {
 	return url;
+}
+
+std::string LocationRedirect::getRoot()
+{
+	return rootPath;
 }

@@ -18,6 +18,7 @@ public:
     ~LocationRedirect();
 
     std::string getUrl();
+    std::string getRoot();
 
 private:
     std::string url;

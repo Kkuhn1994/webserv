@@ -2,7 +2,7 @@
 
 ServerBlock::ServerBlock(const int _port, const std::string _serverName,
                          const std::string _host)
-    : port(_port), serverName(_serverName), host(_host)
+    : port(_port), serverName(_serverName), host(_host), rootPath("")
 {
     std::cout << "\n";  
 	std::cout << "ServerBlock created\n";
@@ -58,6 +58,9 @@ void ServerBlock::initialize(int blockNr)
 	serverFile.clear();
 	serverFile.seekg(0, std::ios::beg);
 	initIndexFiles(serverFile);
+	serverFile.clear();
+	serverFile.seekg(0, std::ios::beg);
+	rootPath = extractRoot(serverFile);
 	serverFile.clear();
 	serverFile.seekg(0, std::ios::beg);
 	for (const auto& pair : pathOfErrorFiles) {
@@ -119,6 +122,10 @@ int pathMatch(std::string path1, std::string path2)
 	for (std::vector<std::string>::iterator it = path1Parts.begin(); it != path1Parts.end(); it++)
 	{
 		// std::cout << path2Parts[index] << "\n";
+		if(index == path2Parts.size())
+		{
+			break;
+		}
 		if(*it.base() != path2Parts[index])
 		{
 			return pathMatch;
@@ -154,8 +161,28 @@ LocationRedirect *ServerBlock::getBestMatchingLocation(std::string path)
 	}
 	if(highest_match != 0)
 	{
-		std::cout << highest_match << "\n\n";
+		std::cout << location[highest_match_index].getUrl() << "\n\n";
 		return &location[highest_match_index];
 	}
 	return NULL;
+}
+
+std::string ServerBlock::extractRoot(std::ifstream &locationFile)
+{
+	std::regex locationRegex(R"(root\s+(?:~|=\s*)?([^\s{;]+))");
+	std::string line;
+	while (std::getline(locationFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, locationRegex))
+		{
+			return match[1];
+		}
+	}
+	return "";
+}
+
+std::string ServerBlock::getRoot() const
+{
+	return rootPath;
 }

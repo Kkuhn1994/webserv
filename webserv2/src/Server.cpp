@@ -14,7 +14,9 @@ WebServer::WebServer(const std::string Path) : config_path(Path), full_request("
 }
 
 WebServer::~WebServer()
-{}
+{
+	poll_fds.clear();
+}
 
 void WebServer::openSockets()
 {
@@ -36,8 +38,8 @@ void WebServer::openSockets()
 		if (listening_poll.fd < 0)
 			throw std::runtime_error("socket: Error creating server socket");
 		#ifdef __APPLE__
-		// if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
-		// 	throw std::runtime_error("Error setting server socket to non-blocking");
+		if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
+			throw std::runtime_error("Error setting server socket to non-blocking");
 		#endif
 		int optreturn = setsockopt(this->_server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 		std::cout << optreturn << "\n";
@@ -131,7 +133,7 @@ void		WebServer::sendResponse(int index)
 	std::string  response = 
 		    std::string("HTTP/1.1 200 OK\r\n") +
 			"Content-Type: text/html; charset=UTF-8\r\n" +
-			 "Content-Length: " + std::to_string(responseBody.length()) + "\r\n" +
+			"Content-Length: " + std::to_string(responseBody.length()) + "\r\n" +
 			"\r\n" +
 			responseBody;
 	char* c_response = new char[response.length() + 1];
@@ -146,14 +148,43 @@ void		WebServer::sendResponse(int index)
 	req.clear();
 }
 
+std::string WebServer::choseRootPath(int index, LocationRedirect *location)
+{
+	std::string rootPath = location->getRoot();
+	if(rootPath == "")
+	{
+		rootPath = config.serverBlock[index].getRoot();
+	}
+	return rootPath;
+}
 
+std::string replacePath(std::string sbegin, const std::string& s1, const std::string& s2) {
+    size_t pos = 0;
+	std::string slash = "";
+	if(s1.length() == 1)
+	{
+		slash = "/";
+	} 
+    while ((pos = sbegin.find(s1, pos)) != std::string::npos) {
+        sbegin.replace(pos, s1.length(), s2 + slash);
+        pos += s2.length() + slash.length(); // Move past the replacement to avoid infinite loops
+	}
+    return sbegin;
+}
 
 void		WebServer::buildResponseBody(int index)
 {
 	std::cout << req.get_path() << " path\n";
 	LocationRedirect *location = config.serverBlock[index].getBestMatchingLocation(req.get_path());
-	// if(req.get_path() == "/")
-	// {
+	if(location)
+	{
+		std::string rootPath = choseRootPath(index, location);
+		std::string locationUrl = location->getUrl();
+		std::string finalPath = replacePath(req.get_path(), locationUrl, rootPath);
+		std::cout << finalPath << "\n";
+	}
+	if(req.get_path() == "/")
+	{
 		std::vector<std::string> indexFiles = config.serverBlock[index].getIndexFiles();
 		//try index files
         for (const auto& file : indexFiles)
@@ -165,7 +196,9 @@ void		WebServer::buildResponseBody(int index)
 			}
 			responseBody = extractFile(indexFile);
         }
-	// }
+	}
+
+
 }
 
 

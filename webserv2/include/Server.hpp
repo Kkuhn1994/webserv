@@ -47,6 +47,8 @@ class WebServer
 		bool		validateFilename(std::string filename);
 		void		buildResponseBody(int index);
 
+		std::string choseRootPath(int index, LocationRedirect *location);
+
 		ConfService					config;
 		Request						req;
 	
@@ -58,6 +60,7 @@ class WebServer
 		std::map<int, Client>		fds_clients;
 		int							_server;
 		int 						client_fd;
+		int							statusCode;
 		struct sockaddr_in 			client_addr;
 		std::string					responseBody;
 };
