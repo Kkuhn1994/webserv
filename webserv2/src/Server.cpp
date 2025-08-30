@@ -14,7 +14,9 @@ WebServer::WebServer(const std::string Path) : config_path(Path), full_request("
 }
 
 WebServer::~WebServer()
-{}
+{
+	poll_fds.clear();
+}
 
 void WebServer::openSockets()
 {
@@ -36,8 +38,8 @@ void WebServer::openSockets()
 		if (listening_poll.fd < 0)
 			throw std::runtime_error("socket: Error creating server socket");
 		#ifdef __APPLE__
-		// if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
-		// 	throw std::runtime_error("Error setting server socket to non-blocking");
+		if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
+			throw std::runtime_error("Error setting server socket to non-blocking");
 		#endif
 		int optreturn = setsockopt(this->_server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 		std::cout << optreturn << "\n";
@@ -73,7 +75,7 @@ void WebServer::loopPollEvents()
 		{
 			if (poll_fds[index].revents & POLLIN) {
 				acceptRequest(index);
-				sendResponse();
+				sendResponse(index);
 			} else if (poll_fds[index].revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";
 			} else if (poll_fds[index].revents & POLLHUP) {
@@ -108,24 +110,96 @@ void		WebServer::acceptRequest(int index)
         close(client_fd);
         return;
     }
+	std::cout << "test2\n";
 }
 
-void		WebServer::sendResponse()
+void		WebServer::sendResponse(int index)
 {
-	
 	std::cout << full_request << "\n";
+	req.add(full_request);
+	buildResponseBody(index);
+	// std::cout << "get_path(): " << req.get_path() << std::endl;
+    // std::cout << "get_path_o(): " << req.get_path_o() << std::endl;
 
-	const char *response = 
-		"HTTP/1.1 200 OK\r\n"
-		"Content-Type: text/html; charset=UTF-8\r\n"
-		"Content-Length: 345\r\n"
-		"\r\n";
+    // // Content getters
+    // std::cout << "get_body(): " << req.get_body() << std::endl;
+    // std::cout << "get_method_enum(): " << req.get_method_enum() << std::endl;
+    // std::cout << "get_method(): " << req.get_method() << std::endl;
+    // std::cout << "get_version(): " << req.get_version() << std::endl;
+    // std::cout << "get_header(\"example_key\"): " << req.get_header("example_key") << std::endl;
+    // std::cout << "get_req(): " << req.get_request() << std::endl;
+	// std::cout << req.get_path() << "\n";
 
-	if (sendto(client_fd, response, strlen(response), 0, 
+	std::string  response = 
+		    std::string("HTTP/1.1 200 OK\r\n") +
+			"Content-Type: text/html; charset=UTF-8\r\n" +
+			"Content-Length: " + std::to_string(responseBody.length()) + "\r\n" +
+			"\r\n" +
+			responseBody;
+	char* c_response = new char[response.length() + 1];
+	std::strcpy(c_response, response.c_str());
+	if (sendto(client_fd, c_response, response.length(), 0, 
                (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
         perror("Fehler beim Senden der Antwort");
         close(client_fd);
         return ;
     }
     close(client_fd);
+	req.clear();
 }
+
+std::string WebServer::choseRootPath(int index, LocationRedirect *location)
+{
+	std::string rootPath = location->getRoot();
+	if(rootPath == "")
+	{
+		rootPath = config.serverBlock[index].getRoot();
+	}
+	return rootPath;
+}
+
+std::string replacePath(std::string sbegin, const std::string& s1, const std::string& s2) {
+    size_t pos = 0;
+	std::string slash = "";
+	if(s1.length() == 1)
+	{
+		slash = "/";
+	} 
+    while ((pos = sbegin.find(s1, pos)) != std::string::npos) {
+        sbegin.replace(pos, s1.length(), s2 + slash);
+        pos += s2.length() + slash.length(); // Move past the replacement to avoid infinite loops
+	}
+    return sbegin;
+}
+
+void		WebServer::buildResponseBody(int index)
+{
+	std::cout << req.get_path() << " path\n";
+	LocationRedirect *location = config.serverBlock[index].getBestMatchingLocation(req.get_path());
+	if(location)
+	{
+		std::string rootPath = choseRootPath(index, location);
+		std::string locationUrl = location->getUrl();
+		std::string finalPath = replacePath(req.get_path(), locationUrl, rootPath);
+		std::cout << finalPath << "\n";
+	}
+	if(req.get_path() == "/")
+	{
+		std::vector<std::string> indexFiles = config.serverBlock[index].getIndexFiles();
+		//try index files
+        for (const auto& file : indexFiles)
+        {
+			std::ifstream indexFile("webcontent/" + file);
+			if (!indexFile)
+			{
+				continue;
+			}
+			responseBody = extractFile(indexFile);
+        }
+	}
+
+
+}
+
+
+

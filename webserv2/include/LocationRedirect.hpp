@@ -17,6 +17,9 @@ public:
     LocationRedirect(std::ifstream &serverFile);
     ~LocationRedirect();
 
+    std::string getUrl();
+    std::string getRoot();
+
 private:
     std::string url;
     std::string rootPath;
@@ -50,4 +53,6 @@ private:
     std::string getCGIParam2();
     void setInclude(std::string _Include);
     std::string getInclude();
+
+
 };

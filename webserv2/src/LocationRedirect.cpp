@@ -1,6 +1,6 @@
 #include "LocationRedirect.hpp"
 
-LocationRedirect::LocationRedirect(std::ifstream &locationFile)
+LocationRedirect::LocationRedirect(std::ifstream &locationFile) : rootPath("")
 {
 	std::string exceptionRequestRule;
 
@@ -19,8 +19,8 @@ LocationRedirect::LocationRedirect(std::ifstream &locationFile)
 	locationFile.clear();
 	locationFile.seekg(0, std::ios::beg);
 	extractPossibleRequests(locationFile);
-    // std::cout << "URL: " << url << std::endl;
-    // std::cout << "Root Path: " << rootPath << std::endl;
+    std::cout << "URL: " << url << std::endl;
+    std::cout << "Root Path: " << rootPath << std::endl;
     // std::cout << "Default Try Files:" << std::endl;
     // for (size_t i = 0; i < defaultTryFiles.size(); ++i) {
     // std::cout << "  [" << i << "]: " << defaultTryFiles[i] << std::endl;
@@ -256,4 +256,14 @@ void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile)
 			}
 		}
 	}
+}
+
+std::string LocationRedirect::getUrl()
+{
+	return url;
+}
+
+std::string LocationRedirect::getRoot()
+{
+	return rootPath;
 }
