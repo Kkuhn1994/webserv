@@ -35,7 +35,7 @@ LocationRedirect::LocationRedirect(std::ifstream &locationFile) : rootPath("")
 	std::cout << "Requestmessage: " << message  << std::endl;
 	std::cout << "allowed methods: "  << std::endl;
 
-	for (const auto& method : allowedMethods) {
+	for (const auto& method : restrictedMethods) {
 		std::cout << "\033[1;33m" << method << "\033[0m" << std::endl;
 	}
 
@@ -227,7 +227,7 @@ void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile)
 		{
 			request = split(match[1]);
 			request.pop_back();
-			allowedMethods = request;
+			restrictedMethods = request;
 			locationFile.clear();
 			locationFile.seekg(0, std::ios::beg);
 			store = extractExceptRequest(locationFile);
@@ -266,4 +266,19 @@ std::string LocationRedirect::getUrl()
 std::string LocationRedirect::getRoot()
 {
 	return rootPath;
+}
+
+std::vector<std::string>    LocationRedirect::getRestrictedMethods()
+{
+	return restrictedMethods;
+}
+
+int		LocationRedirect::getStatusCode()
+{
+	return statusCode;
+}
+
+std::string LocationRedirect::getMessage()
+{
+	return message;
 }

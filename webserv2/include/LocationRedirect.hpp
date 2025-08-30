@@ -17,23 +17,27 @@ public:
     LocationRedirect(std::ifstream &serverFile);
     ~LocationRedirect();
 
-    std::string getUrl();
-    std::string getRoot();
+    std::string                 getUrl();
+    std::string                 getRoot();
+    std::vector<std::string>    getRestrictedMethods();
+	std::string                 getMessage();
+	int							getStatusCode();
+
 
 private:
-    std::string url;
-    std::string rootPath;
-    bool directoryListing;
+    std::string                 		url;
+    std::string                 		rootPath;
+    bool                        		directoryListing;
 
-    std::vector<std::string> defaultTryFiles;
+    std::vector<std::string>    		defaultTryFiles;
 
-    std::string fastCGIPass;
-    std::map<std::string, std::string> fastCGIParam;
-    std::string includeCGI;
+    std::string 						fastCGIPass;
+    std::map<std::string, std::string> 	fastCGIParam;
+    std::string 						includeCGI;
 
-    std::vector<std::string> allowedMethods;
-    int statusCode;
-    std::string message;
+    std::vector<std::string> 			restrictedMethods;
+    int 								statusCode;
+    std::string 						message;
 
     std::string extractUrl(std::ifstream &locationFile);
     std::string extractRoot(std::ifstream &locationFile);

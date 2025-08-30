@@ -181,7 +181,16 @@ void		WebServer::buildResponseBody(int index)
 		std::string rootPath = choseRootPath(index, location);
 		std::string locationUrl = location->getUrl();
 		std::string finalPath = replacePath(req.get_path(), locationUrl, rootPath);
-		std::cout << finalPath << "\n";
+		std::vector<std::string> restrictedMethods = location->getRestrictedMethods();
+		for(std::vector<std::string>::iterator it = restrictedMethods.begin(); it != restrictedMethods.end(); it ++)
+		{
+			if(*it.base() == req.get_method())
+			{
+				statusCode = location->getStatusCode();
+				responseBody = location->getMessage();
+				return;
+			}
+		}
 	}
 	if(req.get_path() == "/")
 	{
