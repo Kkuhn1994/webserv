@@ -235,25 +235,18 @@ void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile)
 			{
 				statusCode = 403;
 				message = "Access denied by server configuration";
-				return ;
 			}
-			else
+			if (std::regex_search(store, match, returnRegex))
 			{
-				if (std::regex_search(line, match, returnRegex))
+				std::cout << match[1] << "\n"; 
+				if (match.size() >= 3)
 				{
-					if (match.size() >= 3)
-					{
-						statusCode = std::stoi(match[1].str());
-						message = match[2].str();
-					}
+					statusCode = std::stoi(match[1].str());
+					message = match[2].str();
 				}
-				else
-				{
-					statusCode = 403;
-					message = "Access denied";
-				}
-				return ;
+				break;
 			}
+			return ;	
 		}
 	}
 }

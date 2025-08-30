@@ -180,7 +180,8 @@ location /api {
 	root /tmp/www;
     limit_except GET POST PUT DELETE {
  # Nur dieses Subnetz darf POST/PUT/DELETE
-        deny all;              # Andere IPs werden blockiert
+ 		deny all;
+       	return 403 "<html><body><h1>403 Forbidden</h1><p>Zugriff verweigert: Nur IPs aus dem Subnetz 192.168.1.0/24 dürfen POST, PUT oder DELETE verwenden.</p></body></html>";           # Andere IPs werden blockiert
     }
 
 }
