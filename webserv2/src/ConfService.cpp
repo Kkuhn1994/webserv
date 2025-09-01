@@ -120,47 +120,7 @@ void ConfService::deleteCommentsOfConfig()
     file.close();
 }
 
-std::string ltrim(const std::string &s)
-{
-    size_t start = 0;
-    while (start < s.length() && std::isspace(static_cast<unsigned char>(s[start])))
-    {
-        ++start;
-    }
-    return s.substr(start);
-}
 
-bool starts_with_server(const std::string &line)
-{
-    std::string trimmed = ltrim(line);
-    return trimmed.rfind("server", 0) == 0; // prüft, ob "server" an Position 0 steht
-}
-
-bool starts_with_location(const std::string &line)
-{
-    std::string trimmed = ltrim(line);
-    return trimmed.rfind("location", 0) == 0; // prüft, ob "location" an Position 0 steht
-}
-
-std::string extractBlock(std::ifstream &in, int brace_count)
-{
-    std::string result;
-    char ch;
-
-    while (in.get(ch))
-    {
-        if (ch == '{')
-            brace_count++;
-        result += ch;
-        if (ch == '}')
-        {
-            brace_count--;
-            if (brace_count == 0)
-                break;
-        }
-    }
-    return result;
-}
 
 void ConfService::extractServerBlocks()
 {

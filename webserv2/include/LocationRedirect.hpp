@@ -14,33 +14,41 @@
 class LocationRedirect
 {
 public:
-    LocationRedirect(std::ifstream &serverFile);
+    LocationRedirect();
     ~LocationRedirect();
 
-    std::string getUrl();
-    std::string getRoot();
+    void                        initialize(int index1, int index2,std::ifstream &serverFile);
+    std::string                 getUrl();
+    std::string                 getRoot();
+    std::vector<std::string>    getRestrictedMethods();
+	std::string                 getMessage();
+    std::string                 isRedirected();
+	int							getStatusCode();
+
 
 private:
-    std::string url;
-    std::string rootPath;
-    bool directoryListing;
+    std::string                 		url;
+    std::string                 		rootPath;
+    bool                        		directoryListing;
 
-    std::vector<std::string> defaultTryFiles;
+    std::vector<std::string>    		defaultTryFiles;
 
-    std::string fastCGIPass;
-    std::map<std::string, std::string> fastCGIParam;
-    std::string includeCGI;
+    std::string 						fastCGIPass;
+    std::map<std::string, std::string> 	fastCGIParam;
+    std::string 						includeCGI;
 
-    std::vector<std::string> allowedMethods;
-    int statusCode;
-    std::string message;
-
+    std::vector<std::string> 			restrictedMethods;
+    int 								statusCode;
+    std::string 						message;
+    std::string                         redirection;
+    
+    void extractRedirections(std::ifstream &locationFile);
     std::string extractUrl(std::ifstream &locationFile);
     std::string extractRoot(std::ifstream &locationFile);
     void extractCGIStuff(std::ifstream &locationFile);
     std::vector<std::string> extractTryFiles(std::ifstream &locationFile);
     std::string extractExceptRequest(std::ifstream &locationFile);
-    void extractPossibleRequests(std::ifstream &locationFile);
+    void extractPossibleRequests(std::ifstream &locationFile, int index1, int index2);
     void extractCGIPass(std::ifstream &locationFile);
     void extractCGIParams(std::ifstream &locationFile);
     void extractInclude(std::ifstream &locationFile);

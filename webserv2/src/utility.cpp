@@ -78,3 +78,140 @@ std::string extractFile(std::ifstream &in)
 	}
 	return text;
 }
+
+std::string replace(std::string buffer, std::string s1, std::string s2)
+{
+	std::string replacedString;
+	int size_of_s1;
+	int occurence_of_s1;
+
+	occurence_of_s1 = buffer.find(s1);
+	while (occurence_of_s1 != std::string::npos)
+	{
+		replacedString.append(buffer.substr(0, occurence_of_s1));
+		replacedString.append(s2);
+		buffer = buffer.substr(occurence_of_s1 + s1.size(), buffer.size());
+		occurence_of_s1 = buffer.find(s1);
+	}
+	replacedString.append(buffer);
+	return replacedString;
+}
+
+#include <fstream>
+#include <string>
+#include <stdexcept>
+#include <filesystem>
+
+std::string readFileToString(const std::string& filename) {
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    if (!file) {
+        throw std::runtime_error("Konnte Datei nicht öffnen: " + filename);
+    }
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    std::string content;
+    content.resize(size);
+    if (!file.read(content.data(), size)) {
+        throw std::runtime_error("Fehler beim Lesen der Datei: " + filename);
+    }
+
+    return content;
+}
+
+void deleteBlock(std::string fileName1, std::string fileName2, size_t locationSize)
+{
+	
+	for(size_t index = 1;index <= locationSize; index ++)
+	{
+        std::string locationFileName;
+        if(fileName2.find("limit_except"))
+        {
+            locationFileName = fileName2;
+        }
+        else
+        {
+            locationFileName = fileName2 + std::to_string(index) + ".txt";
+        }
+		
+		std::ifstream fileIn(fileName1);
+		std::ofstream fileOut;
+		std::string inFile;
+		std::string s1 = readFileToString(locationFileName);
+		std::string s2 = "";
+		std::string buffer;
+		std::string		fileReplace;
+
+		if (fileIn.good() == false)
+		{
+			std::cout << "Infile not availlable\n";
+			return ;
+		}
+		inFile = fileName1;
+		fileReplace = inFile + ".replace";
+		fileOut.open(fileReplace);
+
+		std::string text = "";
+		while (std::getline(fileIn, buffer))
+		{
+			text += "\n" + buffer;
+		}
+		if (text.find(s1) == std::string::npos)
+		{
+			fileOut << text << std::endl;
+		}
+		else
+			fileOut << replace(text, s1, s2) << std::endl;
+		fileIn.close();
+		fileOut.close();
+		std::filesystem::remove(fileName1);
+		std::filesystem::rename(fileReplace, fileName1);
+	}
+}
+
+std::string ltrim(const std::string &s)
+{
+    size_t start = 0;
+    while (start < s.length() && std::isspace(static_cast<unsigned char>(s[start])))
+    {
+        ++start;
+    }
+    return s.substr(start);
+}
+
+bool starts_with_server(const std::string &line)
+{
+    std::string trimmed = ltrim(line);
+    return trimmed.rfind("server", 0) == 0; // prüft, ob "server" an Position 0 steht
+}
+
+bool starts_with_location(const std::string &line)
+{
+    std::string trimmed = ltrim(line);
+    return trimmed.rfind("location", 0) == 0; // prüft, ob "location" an Position 0 steht
+}
+
+bool starts_with_limit_except (const std::string &line)
+{
+    std::string trimmed = ltrim(line);
+    return trimmed.rfind("limit_except ", 0) == 0; // prüft, ob "location" an Position 0 steht
+}
+
+std::string extractBlock(std::ifstream &in, int brace_count)
+{
+    std::string result;
+    char ch;
+
+    while (in.get(ch))
+    {
+        if (ch == '{')
+            brace_count++;
+        result += ch;
+        if (ch == '}')
+        {
+            brace_count--;
+            if (brace_count == 0)
+                break;
+        }
+    }
+    return result;
+}

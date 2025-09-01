@@ -28,23 +28,23 @@ ServerBlock& ServerBlock::operator=(const ServerBlock&)
 
 void ServerBlock::initLocationRedirects(int blockNr)
 {
+	std::string fileName1 = "conf/ServerConfig" + std::to_string(blockNr) + ".txt";
 	int i = 0;
 	while (++i)
 	{
-		std::string fileName = "conf/locationConfig_" + std::to_string(blockNr) + "_" + std::to_string(i) + ".txt";
-		std::ifstream testFile(fileName);
-		if (!testFile.good())
-		{
-			break;
-		}
-		testFile.close();
-		std::ifstream locationRedirectFile(fileName);
+		std::string fileName2 = "conf/locationConfig_" + std::to_string(blockNr) + "_" + std::to_string(i) + ".txt";
+		std::ifstream locationRedirectFile(fileName2);
 		if (!locationRedirectFile)
 			break;
-		LocationRedirect redirect(locationRedirectFile);
+		LocationRedirect redirect;
+
+		deleteBlock(fileName1, fileName2, location.size());
+		redirect.initialize(blockNr, i, locationRedirectFile);
 		location.push_back(redirect);
 	}
 }
+
+
 
 void ServerBlock::initialize(int blockNr) 
 {
@@ -54,6 +54,8 @@ void ServerBlock::initialize(int blockNr)
 	if (!serverFile)
 		return;
 	initLocationRedirects(blockNr);
+	serverFile.clear();
+	serverFile.seekg(0, std::ios::beg);
 	initErrorPages(serverFile);
 	serverFile.clear();
 	serverFile.seekg(0, std::ios::beg);
@@ -63,10 +65,10 @@ void ServerBlock::initialize(int blockNr)
 	rootPath = extractRoot(serverFile);
 	serverFile.clear();
 	serverFile.seekg(0, std::ios::beg);
-	for (const auto& pair : pathOfErrorFiles) {
-        std::cout << pair.first << " : " << pair.second << std::endl;
-    }
-	std::cout << std::endl;
+	// for (const auto& pair : pathOfErrorFiles) {
+    //     std::cout << pair.first << " : " << pair.second << std::endl;
+    // }
+	// std::cout << std::endl;
 }
 
 void ServerBlock::initErrorPages(std::ifstream &serverFile) 

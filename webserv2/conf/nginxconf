@@ -63,9 +63,7 @@ server {
 	server_name localhost;
 
 		location /api {
-    limit_except GET {
-        deny all;
-    }
+
 }
 
 	# location /adminer/ {
@@ -97,6 +95,9 @@ server {
 
     # PHP-Dateien verarbeiten
     location ~ \.php$ {
+		    limit_except GET {
+        deny all;
+    }
         include snippets/fastcgi-php.conf;  # Enthält wichtige FastCGI-Parameter
         fastcgi_pass wp-php:9000;  # PHP-FPM-Container
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
@@ -180,15 +181,18 @@ location /api {
 	root /tmp/www;
     limit_except POST PUT DELETE {
  # Nur dieses Subnetz darf POST/PUT/DELETE
-        deny all;              # Andere IPs werden blockiert
+ 		deny all;
+       	return 403 "<html><body><h1>403 Forbidden</h1><p>Zugriff verweigert: Nur IPs aus dem Subnetz 192.168.1.0/24 dürfen POST, PUT oder DELETE verwenden.</p></body></html>";           # Andere IPs werden blockiert
     }
 
 }
 
 	location / {
 		root /tmp/www;
+		return 302 http://localhost:80/api;
 		# try_files $uri $uri/ =404;
 	}
+	error_page 510 502 513 504 /5xx.html;
 }
 
 # server {

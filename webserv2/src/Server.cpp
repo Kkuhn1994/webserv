@@ -175,14 +175,33 @@ std::string replacePath(std::string sbegin, const std::string& s1, const std::st
 void		WebServer::buildResponseBody(int index)
 {
 	std::cout << req.get_path() << " path\n";
-	LocationRedirect *location = config.serverBlock[index].getBestMatchingLocation(req.get_path());
-	if(location)
+	std::string path = req.get_path();
+	std::string isRedirected = "no";
+	while(isRedirected != "")
 	{
-		std::string rootPath = choseRootPath(index, location);
-		std::string locationUrl = location->getUrl();
-		std::string finalPath = replacePath(req.get_path(), locationUrl, rootPath);
-		std::cout << finalPath << "\n";
+		// std::cout << path<<"\n";
+		LocationRedirect *location = config.serverBlock[index].getBestMatchingLocation(path);
+		if(location)
+		{
+			std::string rootPath = choseRootPath(index, location);
+			std::string locationUrl = location->getUrl();
+			std::string finalPath = replacePath(req.get_path(), locationUrl, rootPath);
+			std::vector<std::string> restrictedMethods = location->getRestrictedMethods();
+			for(std::vector<std::string>::iterator it = restrictedMethods.begin(); it != restrictedMethods.end(); it ++)
+			{
+				if(*it.base() == req.get_method())
+				{
+					statusCode = location->getStatusCode();
+					responseBody = location->getMessage();
+					return;
+				}
+			}
+			isRedirected = location->isRedirected();
+			// std::cout << isRedirected << "\n";
+			path = isRedirected;
+		}
 	}
+
 	if(req.get_path() == "/")
 	{
 		std::vector<std::string> indexFiles = config.serverBlock[index].getIndexFiles();
