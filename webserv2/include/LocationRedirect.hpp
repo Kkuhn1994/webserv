@@ -14,13 +14,15 @@
 class LocationRedirect
 {
 public:
-    LocationRedirect(std::ifstream &serverFile, int index1, int index2);
+    LocationRedirect();
     ~LocationRedirect();
 
+    void                        initialize(int index1, int index2,std::ifstream &serverFile);
     std::string                 getUrl();
     std::string                 getRoot();
     std::vector<std::string>    getRestrictedMethods();
 	std::string                 getMessage();
+    std::string                 isRedirected();
 	int							getStatusCode();
 
 
@@ -38,7 +40,9 @@ private:
     std::vector<std::string> 			restrictedMethods;
     int 								statusCode;
     std::string 						message;
-
+    std::string                         redirection;
+    
+    void extractRedirections(std::ifstream &locationFile);
     std::string extractUrl(std::ifstream &locationFile);
     std::string extractRoot(std::ifstream &locationFile);
     void extractCGIStuff(std::ifstream &locationFile);

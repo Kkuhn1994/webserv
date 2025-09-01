@@ -36,9 +36,11 @@ void ServerBlock::initLocationRedirects(int blockNr)
 		std::ifstream locationRedirectFile(fileName2);
 		if (!locationRedirectFile)
 			break;
-		LocationRedirect redirect(locationRedirectFile, blockNr, i);
-		location.push_back(redirect);
+		LocationRedirect redirect;
+
 		deleteBlock(fileName1, fileName2, location.size());
+		redirect.initialize(blockNr, i, locationRedirectFile);
+		location.push_back(redirect);
 	}
 }
 
@@ -63,10 +65,10 @@ void ServerBlock::initialize(int blockNr)
 	rootPath = extractRoot(serverFile);
 	serverFile.clear();
 	serverFile.seekg(0, std::ios::beg);
-	for (const auto& pair : pathOfErrorFiles) {
-        std::cout << pair.first << " : " << pair.second << std::endl;
-    }
-	std::cout << std::endl;
+	// for (const auto& pair : pathOfErrorFiles) {
+    //     std::cout << pair.first << " : " << pair.second << std::endl;
+    // }
+	// std::cout << std::endl;
 }
 
 void ServerBlock::initErrorPages(std::ifstream &serverFile) 

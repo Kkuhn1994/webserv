@@ -1,40 +1,76 @@
 #include "LocationRedirect.hpp"
 
-LocationRedirect::LocationRedirect(std::ifstream &locationFile, int index1, int index2) : rootPath("")
+void LocationRedirect::extractRedirections(std::ifstream &locationFile)
+{
+	std::string line;
+	std::regex returnRegex(R"(return\s+(\d+)\s+([^\"]+);)");
+
+	while (std::getline(locationFile, line))
+	{
+		std::smatch match;
+		// std::cout << line << "\n";
+		if (std::regex_search(line,match,returnRegex))
+		{
+			if (match.size() >= 3)
+			{
+				statusCode = std::stoi(match[1].str());
+				std::vector<std::string> path = pathSplit(match[2].str());
+				redirection = path[path.size() - 1];			
+			}
+			break;
+		}
+	}
+}
+
+ void  LocationRedirect::initialize(int index1, int index2, std::ifstream &locationFile)
+ {
+	extractPossibleRequests(locationFile, index1, index2);
+		std::string fileName2 = "conf/locationConfig_" + std::to_string(index1)+ "_" + std::to_string(index2) + ".txt";
+		std::ifstream locationfile(fileName2);
+		if (!locationfile)
+			return;
+			// std::cout << "test2 \n";
+	extractRedirections(locationfile);
+	locationfile.clear();
+	locationfile.seekg(0, std::ios::beg);
+	url = extractUrl(locationfile);
+	locationfile.clear();
+	locationfile.seekg(0, std::ios::beg);
+	rootPath = extractRoot(locationfile);
+	locationfile.clear();
+	locationfile.seekg(0, std::ios::beg);
+	defaultTryFiles = extractTryFiles(locationfile);
+	locationfile.clear();
+	locationfile.seekg(0, std::ios::beg);
+	extractCGIStuff(locationfile);
+	locationfile.clear();
+	locationfile.seekg(0, std::ios::beg);
+	    std::cout << "URL: " << url << std::endl;
+ }
+
+LocationRedirect::LocationRedirect() : rootPath(""), redirection("")
 {
 	std::string exceptionRequestRule;
 
 	std::cout << "\n";
 	statusCode = 200;
-	extractPossibleRequests(locationFile, index1, index2);
-	locationFile.clear();
-	locationFile.seekg(0, std::ios::beg);
-	url = extractUrl(locationFile);
-	rootPath = extractRoot(locationFile);
-	locationFile.clear();
-	locationFile.seekg(0, std::ios::beg);
-	defaultTryFiles = extractTryFiles(locationFile);
-	locationFile.clear();
-	locationFile.seekg(0, std::ios::beg);
-	extractCGIStuff(locationFile);
-	locationFile.clear();
-	locationFile.seekg(0, std::ios::beg);
 
-    std::cout << "URL: " << url << std::endl;
-    std::cout << "Root Path: " << rootPath << std::endl;
-    // std::cout << "Default Try Files:" << std::endl;
-    // for (size_t i = 0; i < defaultTryFiles.size(); ++i) {
-    // std::cout << "  [" << i << "]: " << defaultTryFiles[i] << std::endl;
-    // }
-	// std::cout << "FastCGIParams: "  << std::endl;
-    // for (const auto& pair : fastCGIParam) {
-    //     std::cout << pair.first << " : " << pair.second << std::endl;
-    // }
-    // std::cout << "FastCGIPass: " << fastCGIPass  << std::endl;
-	// std::cout << "includeCGI: " << includeCGI  << std::endl;
-	std::cout << "Request Statuscode: " << statusCode  << std::endl;
-	std::cout << "Requestmessage: " << message  << std::endl;
-	std::cout << "allowed methods: "  << std::endl;
+
+
+    // std::cout << "Root Path: " << rootPath << std::endl;
+    // // std::cout << "Default Try Files:" << std::endl;
+    // // for (size_t i = 0; i < defaultTryFiles.size(); ++i) {
+    // // std::cout << "  [" << i << "]: " << defaultTryFiles[i] << std::endl;
+    // // }
+	// // std::cout << "FastCGIParams: "  << std::endl;
+    // // for (const auto& pair : fastCGIParam) {
+    // //     std::cout << pair.first << " : " << pair.second << std::endl;
+    // // }
+    // // std::cout << "FastCGIPass: " << fastCGIPass  << std::endl;
+	// // std::cout << "includeCGI: " << includeCGI  << std::endl;
+	// std::cout << "Request Statuscode: " << statusCode  << std::endl;
+	// std::cout << "Requestmessage: " << message  << std::endl;
+	// std::cout << "allowed methods: "  << std::endl;
 
 	for (const auto& method : restrictedMethods) {
 		std::cout << "\033[1;33m" << method << "\033[0m" << std::endl;
@@ -90,6 +126,8 @@ std::string LocationRedirect::getInclude()
 {
     return includeCGI;
 }
+
+
 
 
 
@@ -213,6 +251,8 @@ std::string LocationRedirect::extractExceptRequest(std::ifstream &locationFile)
 	return "";
 }
 
+
+
 void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile, int index1, int index2)
 {
 	std::string line;
@@ -234,15 +274,12 @@ void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile, int 
 			tempFile.close();
 			std::ifstream file(fileName);
 			std::regex returnRegex(R"(return\s+(\d+)\s+\"([^\"]+)\";)");
-			std::cout << "test" << "\n"; 
 			while (std::getline(file, line))
 			{
 				std::string store = extractExceptRequest(file);
 
 				if (std::regex_search(store, match, returnRegex))
 				{
-
-					std::cout << match[1] << "\n"; 
 					if (match.size() >= 3)
 					{
 						statusCode = std::stoi(match[1].str());
@@ -253,7 +290,6 @@ void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile, int 
 			}
 			
 			deleteBlock("conf/locationConfig_" + std::to_string(index1) + "_" + std::to_string(index2) + ".txt", fileName, 1);
-	
 		}
 
 	}
@@ -283,4 +319,10 @@ int		LocationRedirect::getStatusCode()
 std::string LocationRedirect::getMessage()
 {
 	return message;
+}
+
+std::string LocationRedirect::isRedirected()
+{
+	// std::cout << redirection << "test\n";
+	return redirection;
 }
