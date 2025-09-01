@@ -14,7 +14,7 @@
 class LocationRedirect
 {
 public:
-    LocationRedirect(std::ifstream &serverFile);
+    LocationRedirect(std::ifstream &serverFile, int index1, int index2);
     ~LocationRedirect();
 
     std::string                 getUrl();
@@ -44,7 +44,7 @@ private:
     void extractCGIStuff(std::ifstream &locationFile);
     std::vector<std::string> extractTryFiles(std::ifstream &locationFile);
     std::string extractExceptRequest(std::ifstream &locationFile);
-    void extractPossibleRequests(std::ifstream &locationFile);
+    void extractPossibleRequests(std::ifstream &locationFile, int index1, int index2);
     void extractCGIPass(std::ifstream &locationFile);
     void extractCGIParams(std::ifstream &locationFile);
     void extractInclude(std::ifstream &locationFile);

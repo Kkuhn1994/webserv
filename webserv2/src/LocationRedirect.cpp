@@ -1,14 +1,15 @@
 #include "LocationRedirect.hpp"
 
-LocationRedirect::LocationRedirect(std::ifstream &locationFile) : rootPath("")
+LocationRedirect::LocationRedirect(std::ifstream &locationFile, int index1, int index2) : rootPath("")
 {
 	std::string exceptionRequestRule;
 
 	std::cout << "\n";
 	statusCode = 200;
-	url = extractUrl(locationFile);
+	extractPossibleRequests(locationFile, index1, index2);
 	locationFile.clear();
 	locationFile.seekg(0, std::ios::beg);
+	url = extractUrl(locationFile);
 	rootPath = extractRoot(locationFile);
 	locationFile.clear();
 	locationFile.seekg(0, std::ios::beg);
@@ -18,7 +19,7 @@ LocationRedirect::LocationRedirect(std::ifstream &locationFile) : rootPath("")
 	extractCGIStuff(locationFile);
 	locationFile.clear();
 	locationFile.seekg(0, std::ios::beg);
-	extractPossibleRequests(locationFile);
+
     std::cout << "URL: " << url << std::endl;
     std::cout << "Root Path: " << rootPath << std::endl;
     // std::cout << "Default Try Files:" << std::endl;
@@ -212,43 +213,51 @@ std::string LocationRedirect::extractExceptRequest(std::ifstream &locationFile)
 	return "";
 }
 
-void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile)
+void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile, int index1, int index2)
 {
-	std::vector<std::string> request;
-	std::regex locationRegex(R"(limit_except\s+([^;]+))");
-	std::regex returnRegex(R"(return\s+(\d+)\s+\"([^\"]+)\";)");
 	std::string line;
-	std::string store;
 
 	while (std::getline(locationFile, line))
 	{
+		std::regex locationRegex(R"(limit_except\s+([^;]+))");
 		std::smatch match;
-		if (std::regex_search(line, match, locationRegex) && match.size() > 1)
+		if(std::regex_search(line, match, locationRegex) && match.size() > 1)
 		{
-			request = split(match[1]);
+			std::vector<std::string> request = split(match[1]);
 			request.pop_back();
 			restrictedMethods = request;
-			locationFile.clear();
-			locationFile.seekg(0, std::ios::beg);
-			store = extractExceptRequest(locationFile);
-			if (store.find("deny all;") != std::string::npos)
+			std::string fileName = "conf/limit_except_locationConfig_" + std::to_string(index1) + "_" + std::to_string(index2) + ".txt";
+			
+			std::ofstream tempFile(fileName, std::ios::app);
+			// std::cout << line << extractBlock(locationFile, 1); 
+			tempFile << line << "\n" << extractBlock(locationFile, 1); 
+			tempFile.close();
+			std::ifstream file(fileName);
+			std::regex returnRegex(R"(return\s+(\d+)\s+\"([^\"]+)\";)");
+			std::cout << "test" << "\n"; 
+			while (std::getline(file, line))
 			{
-				statusCode = 403;
-				message = "Access denied by server configuration";
-			}
-			if (std::regex_search(store, match, returnRegex))
-			{
-				std::cout << match[1] << "\n"; 
-				if (match.size() >= 3)
+				std::string store = extractExceptRequest(file);
+
+				if (std::regex_search(store, match, returnRegex))
 				{
-					statusCode = std::stoi(match[1].str());
-					message = match[2].str();
+
+					std::cout << match[1] << "\n"; 
+					if (match.size() >= 3)
+					{
+						statusCode = std::stoi(match[1].str());
+						message = match[2].str();
+					}
+					break;
 				}
-				break;
 			}
-			return ;	
+			
+			deleteBlock("conf/locationConfig_" + std::to_string(index1) + "_" + std::to_string(index2) + ".txt", fileName, 1);
+	
 		}
+
 	}
+
 }
 
 std::string LocationRedirect::getUrl()
