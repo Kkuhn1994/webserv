@@ -24,6 +24,7 @@ public:
 	std::string                 getMessage();
     std::string                 isRedirected();
 	int							getStatusCode();
+    std::vector<std::string>    getIndexFiles();
 
 
 private:
@@ -32,6 +33,7 @@ private:
     bool                        		directoryListing;
 
     std::vector<std::string>    		defaultTryFiles;
+    std::vector<std::string>            indexFiles;
 
     std::string 						fastCGIPass;
     std::map<std::string, std::string> 	fastCGIParam;
@@ -61,6 +63,8 @@ private:
     std::string getCGIParam2();
     void setInclude(std::string _Include);
     std::string getInclude();
+
+    void initIndexFiles(std::ifstream &serverFile);
 
 
 };
