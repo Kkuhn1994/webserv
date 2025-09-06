@@ -2,7 +2,6 @@
 
 WebServer::WebServer(const std::string Path) : config_path(Path), full_request("")
 {
-	// config = ConfService(this->config_path);
 	_server = socket(AF_INET, SOCK_STREAM, 0);
     if (_server < 0) {
         perror("socket failed");
@@ -10,7 +9,6 @@ WebServer::WebServer(const std::string Path) : config_path(Path), full_request("
     }
 	config.initialize(Path);
 
-	std::cout << "LAL\n";
 }
 
 WebServer::~WebServer()
@@ -18,9 +16,9 @@ WebServer::~WebServer()
 	poll_fds.clear();
 }
 
-void WebServer::openSockets()
+void WebServer::openServerSockets() // all these throw statements should be cleaned for potential leaks
 {
-	int	index = 0;
+	_n_server = 0;
 	for (std::vector<ServerBlock>::iterator it = config.serverBlock.begin(); it != config.serverBlock.end(); it++)
 	{
 		struct pollfd listening_poll;
@@ -44,20 +42,21 @@ void WebServer::openSockets()
 		int optreturn = setsockopt(this->_server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 		std::cout << optreturn << "\n";
 		if (optreturn == -1) {
-			perror("setsockopt failed");
+			throw std::runtime_error("setsockopt failed");
 		}
 		if (optreturn != 0)
 			throw std::runtime_error("Could not set socket options");
 		if (bind(listening_poll.fd, (struct sockaddr*)&(_address), sizeof(_address)) < 0)
 			throw std::runtime_error("Error binding server socket port");
-		int listenreturn = listen(listening_poll.fd, SOMAXCONN); // why 3
+		int listenreturn = listen(listening_poll.fd, SOMAXCONN);
 		if (listenreturn < 0)
 			throw std::runtime_error("Could not listen");
 		listening_poll.events = POLLIN;
 		listening_poll.revents = 0;
 		poll_fds.push_back(listening_poll);
 
-		std::cout << "Socket " << (index++) << " (FD " << listening_poll.fd
+		_n_server++;
+		std::cout << "Socket " << _n_server << " (FD " << listening_poll.fd
 				  << ") is listening on: " << "edit host here" << ":" << it.base()->getPort() << std::endl;
 	}
 }
@@ -66,16 +65,25 @@ void WebServer::loopPollEvents()
 {
 	while(1)
 	{
-		int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
+		// add shutdown check, implemented to also be called from destructor
+		int poll_count = poll(poll_fds.data(), poll_fds.size(), -1); // we should probably not give a negative timeout for poll
         if (poll_count < 0)
-        {
-            throw std::runtime_error("Error with poll()");
-        }
-		for (size_t index = 0; index < poll_fds.size(); index ++)
+			continue ;
+		for (size_t index = 0; index < poll_fds.size(); index ++)// switch to using a proprt iterator in casemid clients disconnect? rethink this comment tho
 		{
 			if (poll_fds[index].revents & POLLIN) {
-				acceptRequest(index);
-				sendResponse(index);
+				if (poll_count < _n_server)
+				{
+					Client new_client(poll_fds[index], config);
+					_clients.insert(std::make_pair(new_client.get_Socket(), new_client));
+					poll_fds.push_back(poll_fds[index]);
+				}
+				else
+				{
+					// other shenanigans
+					acceptRequest(index);
+					sendResponse(index);
+				}
 			} else if (poll_fds[index].revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";
 			} else if (poll_fds[index].revents & POLLHUP) {

@@ -26,13 +26,13 @@ int main(int argc, char  *argv[])
 			if(argc == 2) 
 			{
 				WebServer server(argv[1]);
-				server.openSockets();
+				server.openServerSockets();
 				server.loopPollEvents();
 			}
 			else 
 			{
 				WebServer server(DEFAULT_CONFIG);
-				server.openSockets();
+				server.openServerSockets();
 				server.loopPollEvents();
 			}
 			

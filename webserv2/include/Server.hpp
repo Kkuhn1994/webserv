@@ -3,10 +3,11 @@
 #include <poll.h>
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <cstddef>
 #include <limits>
 #include <algorithm>
-#include <fstream>
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -14,7 +15,6 @@
 #include <stdio.h>
 #include <map>
 #include <set>
-#include <sstream>
 #include <netdb.h>
 
 
@@ -34,9 +34,9 @@ class WebServer
 		WebServer(const std::string Path);
 		~WebServer();
 		// Request						req;
-		void		openSockets();
-		void		loopPollEvents();
 
+		void		openServerSockets();
+		void		loopPollEvents();
 	private:
 		void		acceptRequest(int index);
 	//	void		acceptClients(int server_fd);
@@ -57,8 +57,9 @@ class WebServer
 		std::string					full_request;
 		std::vector<struct pollfd>	poll_fds;
 		std::vector<int>			listening_socket_fds;
-		std::map<int, Client>		fds_clients;
+		std::map<int, Client>		_clients;
 		int							_server;
+		int							_n_server;
 		int 						client_fd;
 		int							statusCode;
 		struct sockaddr_in 			client_addr;
