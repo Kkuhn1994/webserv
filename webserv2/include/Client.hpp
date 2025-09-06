@@ -14,6 +14,10 @@
 
 #include "ConfService.hpp"
 
+#ifndef PACKAGE_SIZE
+# define PACKAGE_SIZE 1024
+#endif
+
 class Client
 {
 	public:
@@ -21,9 +25,18 @@ class Client
 		Client(struct pollfd& poll_fd, class ConfService& server_config);
 		~Client(void);
 
-		int				get_Socket();
+		void			reset_receiver();
+		int				recieve_packet(int fd);
+
+		int				get_socket();
 		struct pollfd&	get_pollfd();
+		int				get_error();
+		void			set_error(int p_error);
+		std::string		get_request();
 	private:
 		class ConfService		_server_config;
 		struct pollfd			_poll_fd;
+		int						_error;
+		std::string				_request;
+		bool					_request_received;
 };

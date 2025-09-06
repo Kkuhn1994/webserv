@@ -75,13 +75,13 @@ void WebServer::loopPollEvents()
 				if (poll_count < _n_server)
 				{
 					Client new_client(poll_fds[index], config);
-					_clients.insert(std::make_pair(new_client.get_Socket(), new_client));
+					_clients.insert(std::make_pair(new_client.get_socket(), new_client));
 					poll_fds.push_back(poll_fds[index]);
 				}
 				else
 				{
-					// other shenanigans
-					acceptRequest(index);
+					Client client = _clients[poll_fds[index].fd];
+					client.recieve_packet(poll_fds[index].fd);
 					sendResponse(index);
 				}
 			} else if (poll_fds[index].revents & POLLERR) {
