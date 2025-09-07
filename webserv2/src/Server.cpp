@@ -180,20 +180,35 @@ std::string replacePath(std::string sbegin, const std::string& s1, const std::st
     return sbegin;
 }
 
+void WebServer::iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles)
+{
+	for (const auto& file : indexFiles)
+	{
+		std::ifstream indexFile(basicPath + file);
+		if (!indexFile)
+		{
+			continue;
+		}
+		responseBody = extractFile(indexFile);
+		std::cout << responseBody << "\n";
+	}
+}
+
 void		WebServer::buildResponseBody(int index)
 {
-	std::cout << req.get_path() << " path\n";
+	LocationRedirect *location;
+	std::string finalPath;
+	// std::cout << req.get_path() << " path\n";
 	std::string path = req.get_path();
 	std::string isRedirected = "no";
 	while(isRedirected != "")
 	{
-		// std::cout << path<<"\n";
-		LocationRedirect *location = config.serverBlock[index].getBestMatchingLocation(path);
+		location = config.serverBlock[index].getBestMatchingLocation(path);
 		if(location)
 		{
 			std::string rootPath = choseRootPath(index, location);
 			std::string locationUrl = location->getUrl();
-			std::string finalPath = replacePath(req.get_path(), locationUrl, rootPath);
+			finalPath = replacePath(req.get_path(), locationUrl, rootPath);
 			std::vector<std::string> restrictedMethods = location->getRestrictedMethods();
 			for(std::vector<std::string>::iterator it = restrictedMethods.begin(); it != restrictedMethods.end(); it ++)
 			{
@@ -209,20 +224,36 @@ void		WebServer::buildResponseBody(int index)
 			path = isRedirected;
 		}
 	}
-
+	if(location)
+	{
+		std::cout << finalPath.substr(1, finalPath.length() - 1) << "\n;";
+		std::ifstream responseFile("tmp/www");
+		// std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
+		if (!responseFile)
+		{
+			statusCode = 404;
+			return;
+		}
+		else if (std::filesystem::is_directory(finalPath.substr(1, finalPath.length() - 1)))
+		{
+			std::cout << "test5\n";
+			std::vector<std::string> indexFiles = location->getIndexFiles();
+			if(indexFiles.size() == 0)
+			{
+				indexFiles = config.serverBlock[index].getIndexFiles();
+			}
+			iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles);
+			return;
+		}
+		std::cout << "test6\n";
+		responseBody = extractFile(responseFile);
+		
+	}
 	if(req.get_path() == "/")
 	{
 		std::vector<std::string> indexFiles = config.serverBlock[index].getIndexFiles();
 		//try index files
-        for (const auto& file : indexFiles)
-        {
-			std::ifstream indexFile("webcontent/" + file);
-			if (!indexFile)
-			{
-				continue;
-			}
-			responseBody = extractFile(indexFile);
-        }
+		iterateIndexFiles("webcontent/", indexFiles);
 	}
 
 

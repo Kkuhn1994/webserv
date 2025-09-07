@@ -179,6 +179,7 @@ server {
 
 location /api {
 	root /tmp/www;
+	index index1.html;
     limit_except POST PUT DELETE {
  # Nur dieses Subnetz darf POST/PUT/DELETE
  		deny all;

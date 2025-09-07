@@ -39,6 +39,9 @@ void LocationRedirect::extractRedirections(std::ifstream &locationFile)
 	rootPath = extractRoot(locationfile);
 	locationfile.clear();
 	locationfile.seekg(0, std::ios::beg);
+	initIndexFiles(locationfile);
+	locationfile.clear();
+	locationfile.seekg(0, std::ios::beg);
 	defaultTryFiles = extractTryFiles(locationfile);
 	locationfile.clear();
 	locationfile.seekg(0, std::ios::beg);
@@ -296,6 +299,22 @@ void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile, int 
 
 }
 
+void LocationRedirect::initIndexFiles(std::ifstream &serverFile)
+{
+	std::regex pattern(R"(index\s+([^;]+))");
+	std::string line;
+	while (std::getline(serverFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, pattern))
+		{
+			std::cout << match[1];
+			indexFiles = split(match[1]);
+			return;
+		}
+	}
+}
+
 std::string LocationRedirect::getUrl()
 {
 	return url;
@@ -325,4 +344,9 @@ std::string LocationRedirect::isRedirected()
 {
 	// std::cout << redirection << "test\n";
 	return redirection;
+}
+
+std::vector<std::string> LocationRedirect::getIndexFiles()
+{
+	return indexFiles;
 }
