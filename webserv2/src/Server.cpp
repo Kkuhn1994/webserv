@@ -66,27 +66,32 @@ void WebServer::loopPollEvents()
 	while(1)
 	{
 		// add shutdown check, implemented to also be called from destructor
-		int poll_count = poll(poll_fds.data(), poll_fds.size(), -1); // we should probably not give a negative timeout for poll
+		int poll_count = poll(poll_fds.data(), poll_fds.size(), 1000); // we should probably not give a negative timeout for poll
         if (poll_count < 0)
 			continue ;
-		for (size_t index = 0; index < poll_fds.size(); index ++)// switch to using a proprt iterator in casemid clients disconnect? rethink this comment tho
+		for (std::vector<struct pollfd>::iterator it = poll_fds.begin(); it != poll_fds.end(); it++)
 		{
-			if (poll_fds[index].revents & POLLIN) {
-				if (poll_count < _n_server)
+			if (it->revents & POLLIN) {
+				if (it < poll_fds.begin() + _n_server)
 				{
-					Client new_client(poll_fds[index], config);
-					_clients.insert(std::make_pair(new_client.get_socket(), new_client));
-					poll_fds.push_back(poll_fds[index]);
+					std::cout << "received new client stored at " << it->fd << "\n";
+					Client c(it->fd, config);
+					std::cout << "original " << c.get_socket() << "\n";
+					this->_clients.insert(std::make_pair(c.get_socket(), c));
+					std::cout << "received new client stored at " << it->fd << " its fd is " << c.get_socket() << "\n";
+					this->poll_fds.push_back(c.get_pollfd());
+					break ;
 				}
 				else
 				{
-					Client client = _clients[poll_fds[index].fd];
-					client.recieve_packet(poll_fds[index].fd);
-					sendResponse(index);
+					this->_clients[it->fd].recieve_packet(it->fd);
+					if (this->_clients[it->fd].get_request().length() > 0)
+						std::cout << "received Request " << this->_clients[it->fd].get_request() << " \n";
+					// sendResponse(index);
 				}
-			} else if (poll_fds[index].revents & POLLERR) {
+			} else if (it->revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";
-			} else if (poll_fds[index].revents & POLLHUP) {
+			} else if (it->revents & POLLHUP) {
 				std::cout << "Socket hung up (client disconnected).\n";
 			}
 		}

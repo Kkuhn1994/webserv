@@ -6,13 +6,15 @@
 Client::Client()
 {
     reset_receiver();
+    std::cout << C_GREE << "Client created empty" << C_NONE << "\n";
 }
-Client::Client(pollfd& poll_fd, ConfService& server_config)
+Client::Client(int poll_fd_fd, ConfService& server_config)
 {
 	int newClientSocket;
 	int	opt = 1;
+    socklen_t addrlen = sizeof(client_addr);
 
-	newClientSocket = accept(poll_fd.fd, NULL, NULL);
+	newClientSocket = accept(poll_fd_fd, (struct sockaddr*)&client_addr, &addrlen);
 	if (newClientSocket == -1)
 		throw std::runtime_error("Accept error");
 
@@ -23,11 +25,12 @@ Client::Client(pollfd& poll_fd, ConfService& server_config)
 	_poll_fd.revents = 0;
 	_server_config = server_config;
     reset_receiver();
+    std::cout << C_GREE << "Client created" << C_NONE << "\n";
 }
 
 Client::~Client()
 {
-    std::cout << "Client destroyed\n";
+    std::cout << C_RED << "Client destroyed" << C_NONE << "\n";
 }
 
 
@@ -50,10 +53,10 @@ int	Client::recieve_packet(int fd)
 	if (bytes_read == 0 && _request.length() == 0) {
 		return (0); // dead client lal remove from map und so
 	}
-	for (size_t size = 0; size < strlen(request_chunk); size++)
-        _request.push_back(request_chunk[size]);
+	_request.append(request_chunk);
 	if (bytes_read == 0 || strlen(request_chunk) < PACKAGE_SIZE)
 		_request_received = true;
+	std::cout << "received Packet " << bytes_read << "\n";
 	return (bytes_read);
 }
 

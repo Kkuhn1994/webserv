@@ -5,6 +5,11 @@
 #include <fstream>
 #include <iostream>
 
+#define C_GRAY "\e[5;2;38;240;23;23m"
+#define C_RED "\e[38;2;123;23;23m"
+#define C_GREE "\e[38;2;23;123;23m"
+#define C_NONE "\e[0m"
+
 std::vector<std::string> split(const std::string &str);
 std::vector<std::string> pathSplit(const std::string &str);
 std::string resolveWildcardErrorCode(const std::string& errorCode, const std::string& pathToPage);

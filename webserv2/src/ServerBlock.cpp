@@ -5,7 +5,7 @@ ServerBlock::ServerBlock(const int _port, const std::string _serverName,
     : port(_port), serverName(_serverName), host(_host), rootPath("")
 {
     std::cout << "\n";  
-	std::cout << "ServerBlock created\n";
+	std::cout << C_GREE << "ServerBlock created" << C_NONE << "\n";
     std::cout << "Port: " << port << "\n";
     std::cout << "Server Name: " << serverName << "\n";
     std::cout << "Host: " << host << "\n"; 
@@ -13,7 +13,7 @@ ServerBlock::ServerBlock(const int _port, const std::string _serverName,
 
 ServerBlock::~ServerBlock()
 {
-    std::cout << "ServerBlock destroyed\n";
+    std::cout << C_RED << "ServerBlock destroyed" << C_NONE << "\n";
 }
 
 int ServerBlock::getPort() const

@@ -13,6 +13,7 @@
 #include <netdb.h>
 
 #include "ConfService.hpp"
+#include "utility.hpp"
 
 #ifndef PACKAGE_SIZE
 # define PACKAGE_SIZE 1024
@@ -22,7 +23,7 @@ class Client
 {
 	public:
 		Client();
-		Client(struct pollfd& poll_fd, class ConfService& server_config);
+		Client(int const poll_fd_fd, class ConfService& server_config);
 		~Client(void);
 
 		void			reset_receiver();
@@ -39,4 +40,5 @@ class Client
 		int						_error;
 		std::string				_request;
 		bool					_request_received;
+		struct sockaddr_in 		client_addr;
 };

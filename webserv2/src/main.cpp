@@ -39,7 +39,7 @@ int main(int argc, char  *argv[])
 		}
 		catch(const std::exception& e)
 		{
-			std::cerr << "\e[5;2;38;240;23;23m" << "[WBSRV] ERROR: " << e.what() << "\e[0m" << std::endl;
+			std::cerr << C_GRAY << "[WBSRV] ERROR: " << e.what() << C_NONE << std::endl;
 		}
 
 
