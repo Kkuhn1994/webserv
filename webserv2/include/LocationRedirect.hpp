@@ -25,12 +25,12 @@ public:
     std::string                 isRedirected();
 	int							getStatusCode();
     std::vector<std::string>    getIndexFiles();
+    bool                        getDirectoryListing();
 
 
 private:
     std::string                 		url;
     std::string                 		rootPath;
-    bool                        		directoryListing;
 
     std::vector<std::string>    		defaultTryFiles;
     std::vector<std::string>            indexFiles;
@@ -43,6 +43,7 @@ private:
     int 								statusCode;
     std::string 						message;
     std::string                         redirection;
+    bool                                directoryListing;
     
     void extractRedirections(std::ifstream &locationFile);
     std::string extractUrl(std::ifstream &locationFile);
@@ -54,6 +55,7 @@ private:
     void extractCGIPass(std::ifstream &locationFile);
     void extractCGIParams(std::ifstream &locationFile);
     void extractInclude(std::ifstream &locationFile);
+    void extractDirectoryListing(std::ifstream &locationFile);
     
     void setCGIPass(std::string _fastCGIPass);
     std::string getCGIPass();

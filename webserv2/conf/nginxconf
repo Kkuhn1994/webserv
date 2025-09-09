@@ -63,7 +63,7 @@ server {
 	server_name localhost;
 
 		location /api {
-
+autoindex on;
 }
 
 	# location /adminer/ {
@@ -178,6 +178,7 @@ server {
 	index index.html;
 
 location /api {
+	autoindex off;
 	root /tmp/www;
 	index index1.html;
     limit_except POST PUT DELETE {
@@ -189,8 +190,9 @@ location /api {
 }
 
 	location / {
+		autoindex on;
 		root /tmp/www;
-		return 302 http://localhost:80/api;
+		# return 302 http://localhost:80/api;
 		# try_files $uri $uri/ =404;
 	}
 	error_page 510 502 513 504 /5xx.html;

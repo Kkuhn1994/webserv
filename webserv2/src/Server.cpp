@@ -171,8 +171,7 @@ std::string replacePath(std::string sbegin, const std::string& s1, const std::st
 	}
     return sbegin;
 }
-
-void WebServer::iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles)
+bool WebServer::iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles)
 {
 	for (const auto& file : indexFiles)
 	{
@@ -182,8 +181,9 @@ void WebServer::iterateIndexFiles(std::string basicPath, std::vector<std::string
 			continue;
 		}
 		responseBody = extractFile(indexFile);
-		std::cout << responseBody << "\n";
+		return true;
 	}
+	return false;
 }
 
 void		WebServer::buildResponseBody(int index)
@@ -218,9 +218,8 @@ void		WebServer::buildResponseBody(int index)
 	}
 	if(location)
 	{
-		std::cout << finalPath.substr(1, finalPath.length() - 1) << "\n;";
-		std::ifstream responseFile("tmp/www");
-		// std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
+		// std::cout << finalPath.substr(1, finalPath.length() - 1) << "\n;";
+		std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
 		if (!responseFile)
 		{
 			statusCode = 404;
@@ -228,16 +227,27 @@ void		WebServer::buildResponseBody(int index)
 		}
 		else if (std::filesystem::is_directory(finalPath.substr(1, finalPath.length() - 1)))
 		{
-			std::cout << "test5\n";
 			std::vector<std::string> indexFiles = location->getIndexFiles();
 			if(indexFiles.size() == 0)
 			{
 				indexFiles = config.serverBlock[index].getIndexFiles();
 			}
-			iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles);
+			if(!iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles))
+			{
+				if(location->getDirectoryListing())
+				{
+					for (const auto& entry : std::filesystem::directory_iterator(finalPath.substr(1, finalPath.length() - 1))) {
+						responseBody += entry.path().filename().string() + "<br>";
+					}
+				}
+				else
+				{
+					statusCode = 403;
+				}
+
+			}
 			return;
 		}
-		std::cout << "test6\n";
 		responseBody = extractFile(responseFile);
 		
 	}

@@ -49,7 +49,7 @@ class WebServer
 		void		buildResponseBody(int index);
 
 		std::string choseRootPath(int index, LocationRedirect *location);
-		void iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles);
+		bool iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles);
 
 		ConfService					config;
 		Request						req;
