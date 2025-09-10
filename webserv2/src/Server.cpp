@@ -115,9 +115,10 @@ void		WebServer::acceptRequest(int index)
 
 void		WebServer::sendResponse(int index)
 {
-	std::cout << full_request << "\n";
+	// std::cout << full_request << "\n";
 	req.add(full_request);
 	buildResponseBody(index);
+	std::cout << "testreturn\n";
 	// std::cout << "get_path(): " << req.get_path() << std::endl;
     // std::cout << "get_path_o(): " << req.get_path_o() << std::endl;
 
@@ -204,8 +205,9 @@ void		WebServer::buildResponseBody(int index)
 			std::vector<std::string> restrictedMethods = location->getRestrictedMethods();
 			for(std::vector<std::string>::iterator it = restrictedMethods.begin(); it != restrictedMethods.end(); it ++)
 			{
-				if(*it.base() == req.get_method())
+				if(*it.base() != req.get_method())
 				{
+					std::cout << "restricted method\n";
 					statusCode = location->getStatusCode();
 					responseBody = location->getMessage();
 					return;
