@@ -11,8 +11,10 @@
 #include <stdlib.h>
 #include <poll.h>
 #include <netdb.h>
+#include <filesystem>
 
 #include "ConfService.hpp"
+#include "Request.hpp"
 #include "utility.hpp"
 
 #ifndef PACKAGE_SIZE
@@ -23,7 +25,7 @@ class Client
 {
 	public:
 		Client();
-		Client(int const poll_fd_fd, class ConfService& server_config);
+		Client(int const poll_fd_fd, class ConfService& server_config, int index);
 		~Client(void);
 
 		void			reset_receiver();
@@ -34,11 +36,26 @@ class Client
 		int				get_error();
 		void			set_error(int p_error);
 		std::string		get_request();
+
+		void			sendResponse();
+		void			clear();
 	private:
+		int 					index;
+		int 					newClientSocket;
 		class ConfService		_server_config;
+		class Request			req;
+		class ConfService		config;
 		struct pollfd			_poll_fd;
 		int						_error;
 		std::string				_request;
 		bool					_request_received;
 		struct sockaddr_in 		client_addr;
+		std::string				responseBody;
+		int						statusCode;
+
+		void		buildResponseBody();
+		std::string choseRootPath(LocationRedirect *location);
+		void iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles);
+
+		
 };
