@@ -25,6 +25,7 @@ public:
     std::string                 isRedirected();
 	int							getStatusCode();
     std::vector<std::string>    getIndexFiles();
+    std::map<std::string, std::string> getCGIParams();  // CGI ADDITION: Public getter for CGI environment variables from config
 
 
 private:
@@ -65,6 +66,5 @@ private:
     std::string getInclude();
 
     void initIndexFiles(std::ifstream &serverFile);
-
 
 };

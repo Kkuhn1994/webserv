@@ -130,6 +130,13 @@ std::string LocationRedirect::getInclude()
     return includeCGI;
 }
 
+// CGI ADDITION: Public method to access CGI environment parameters
+// Returns the fastCGIParam map containing environment variables for CGI execution
+std::map<std::string, std::string> LocationRedirect::getCGIParams()
+{
+    return fastCGIParam;
+}
+
 
 
 

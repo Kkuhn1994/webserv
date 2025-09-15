@@ -21,8 +21,19 @@ WebServer::~WebServer()
 void WebServer::openSockets()
 {
 	int	index = 0;
+	std::vector<int> usedPorts; // CGI ADDITION: Track used ports to avoid duplicates (workaround for config parser bug)
+	
 	for (std::vector<ServerBlock>::iterator it = config.serverBlock.begin(); it != config.serverBlock.end(); it++)
 	{
+		int port = it.base()->getPort();
+		
+		// CGI ADDITION: Skip if port already used (prevents binding errors from duplicate configs)
+		if (std::find(usedPorts.begin(), usedPorts.end(), port) != usedPorts.end()) {
+			std::cout << "Skipping duplicate port: " << port << std::endl;
+			continue;
+		}
+		usedPorts.push_back(port);
+		
 		struct pollfd listening_poll;
 		struct protoent		*prtdb;
 		int					opt = 1;
@@ -38,10 +49,10 @@ void WebServer::openSockets()
 		if (listening_poll.fd < 0)
 			throw std::runtime_error("socket: Error creating server socket");
 		#ifdef __APPLE__
-		if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
+		if (fcntl(listening_poll.fd, F_SETFL, O_NONBLOCK) < 0)  // CGI ADDITION: Fixed - was using wrong fd
 			throw std::runtime_error("Error setting server socket to non-blocking");
 		#endif
-		int optreturn = setsockopt(this->_server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+		int optreturn = setsockopt(listening_poll.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));  // CGI ADDITION: Fixed socket bug - was using this->_server instead of listening_poll.fd
 		std::cout << optreturn << "\n";
 		if (optreturn == -1) {
 			perror("setsockopt failed");
@@ -218,7 +229,53 @@ void		WebServer::buildResponseBody(int index)
 	}
 	if(location)
 	{
-		std::cout << finalPath.substr(1, finalPath.length() - 1) << "\n;";
+		std::string cleanPath = finalPath.substr(1, finalPath.length() - 1);
+		std::cout << cleanPath << "\n;";
+		
+		// CGI ADDITION: Check if this is a CGI request by file extension
+		if (CGIExecutor::isCGIFile(cleanPath)) {
+			CGIExecutor executor;  // CGI ADDITION: Create instance of modular CGI handler
+			
+			// CGI ADDITION: Build CGI request structure with all necessary data
+			CGIRequest cgiReq;
+			cgiReq.method = req.get_method();
+			cgiReq.scriptPath = cleanPath;
+			
+			// CGI ADDITION: Parse query string from path if it contains '?'
+			std::string fullPath = req.get_path();
+			size_t queryPos = fullPath.find('?');
+			if (queryPos != std::string::npos) {
+				cgiReq.queryString = fullPath.substr(queryPos + 1);
+			} else {
+				cgiReq.queryString = "";
+			}
+			
+			cgiReq.body = req.get_body();
+			
+			// CGI ADDITION: Add HTTP headers to CGI request
+			cgiReq.headers["Content-Type"] = req.get_header("Content-Type");
+			
+			// CGI ADDITION: Add environment variables from location config
+			// This uses your existing CGI config parsing!
+			std::map<std::string, std::string> params = location->getCGIParams();
+			for (const auto& param : params) {
+				cgiReq.env[param.first] = param.second;
+			}
+			
+			// CGI ADDITION: Execute CGI script and handle response
+			CGIResponse cgiResp = executor.execute(cgiReq);
+			
+			if (cgiResp.success) {
+				responseBody = cgiResp.body;
+				// You could also parse cgiResp.headers for custom headers
+				return;
+			} else {
+				statusCode = 500;
+				responseBody = cgiResp.body; // Contains error page
+				return;
+			}
+		}
+		
 		std::ifstream responseFile("tmp/www");
 		// std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
 		if (!responseFile)
@@ -226,7 +283,7 @@ void		WebServer::buildResponseBody(int index)
 			statusCode = 404;
 			return;
 		}
-		else if (std::filesystem::is_directory(finalPath.substr(1, finalPath.length() - 1)))
+		else if (std::filesystem::is_directory(cleanPath))
 		{
 			std::cout << "test5\n";
 			std::vector<std::string> indexFiles = location->getIndexFiles();
@@ -252,4 +309,14 @@ void		WebServer::buildResponseBody(int index)
 }
 
 
+// CGI ADDITION: Helper function to check if a string ends with a given suffix
+bool endsWith(const std::string& str, const std::string& suffix) {
+	if (str.length() < suffix.length()) return false;
+	return str.compare(str.length() - suffix.length(), suffix.length(), suffix) == 0;
+}
 
+// CGI ADDITION: Simple function to check if the request is for a CGI script
+// NOTE: This is redundant since CGIExecutor::isCGIFile() does the same thing
+bool isCGIRequest(const std::string& path) {
+	return endsWith(path, ".php") || endsWith(path, ".py") || endsWith(path, ".cgi");
+}
