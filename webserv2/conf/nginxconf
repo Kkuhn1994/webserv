@@ -201,13 +201,15 @@
 # to sites-enabled/ to enable it.
 #
 server {
-	listen 8009;
+	listen 8019;
 	# listen [::]:8001;
 
 	server_name example.com;
 
 	root /var/www/example.com;
 	index index.html;
+
+	error_page 403 /www/errorPages/error403.html;
 
 location /api {
 	autoindex off;

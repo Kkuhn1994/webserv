@@ -163,6 +163,42 @@ bool Client::iterateIndexFiles(std::string basicPath, std::vector<std::string> i
 	return false;
 }
 
+void Client::loadErrorSite()
+{
+	std::cout << "error\n";
+	if(_server_config.serverBlock[index].getErrorFilePaths()[statusCode] == "")
+	{
+		std::string defaultPath = "errorpagesdefault/" + std::to_string(statusCode) + ".html";
+		std::ifstream errorFile(defaultPath);
+		if(!errorFile)
+		{
+			responseBody = "errorpageunavailable . Error:" + std::to_string(statusCode);
+			return;
+		}
+		responseBody = extractFile(errorFile);
+	}
+	else
+	{
+		std::string configPath = _server_config.serverBlock[index].getErrorFilePaths()[statusCode];
+		std::cout << configPath << "\n";
+		std::ifstream errorFile(configPath);
+		if(!errorFile)
+		{
+			std::string defaultPath = "errorpagesdefault/" + std::to_string(statusCode) + ".html";
+			std::ifstream errorFile(defaultPath);
+			if(!errorFile)
+			{
+				responseBody = "errorpageunavailable . Error:" + std::to_string(statusCode);
+				return;
+			}
+			responseBody = extractFile(errorFile);
+			return;
+		}
+		responseBody = extractFile(errorFile);
+		std::cout << responseBody << "\n";
+	}
+}
+
 void		Client::buildResponseBody()
 {
 	LocationRedirect *location;
@@ -222,6 +258,7 @@ void		Client::buildResponseBody()
 				else
 				{
 					statusCode = 403;
+					loadErrorSite();
 				}
 			}
 			return;

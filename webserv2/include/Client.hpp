@@ -53,9 +53,10 @@ class Client
 		std::string				responseBody;
 		int						statusCode;
 
-		void		buildResponseBody();
-		std::string choseRootPath(LocationRedirect *location);
-		bool iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles);
+		void					buildResponseBody();
+		std::string				choseRootPath(LocationRedirect *location);
+		bool					iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles);
+		void 					loadErrorSite();
 
 		
 };

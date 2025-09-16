@@ -19,10 +19,12 @@ public:
 
     void initialize(int blockNr);
 
-    int getPort() const;
-    std::string getRoot() const;
-    std::vector<std::string> getIndexFiles();
-    LocationRedirect *getBestMatchingLocation(std::string path);
+    std::map<int, std::string>          getErrorFilePaths();
+    int                                 getPort() const;
+    std::string                         getRoot() const;
+    std::vector<std::string>            getIndexFiles();
+    LocationRedirect                    *getBestMatchingLocation(std::string path);
+
 
 private:
     const int port;
