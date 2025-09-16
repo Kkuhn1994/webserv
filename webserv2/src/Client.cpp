@@ -103,7 +103,7 @@ void		Client::sendResponse()
     // std::cout << "get_req(): " << req.get_request() << std::endl;
 	// std::cout << req.get_path() << "\n";
 
-	std::string  response = 
+	std::string  response =
 		    std::string("HTTP/1.1 200 OK\r\n") +
 			"Content-Type: text/html; charset=UTF-8\r\n" +
 			"Content-Length: " + std::to_string(responseBody.length()) + "\r\n" +
@@ -111,7 +111,7 @@ void		Client::sendResponse()
 			responseBody;
 	char* c_response = new char[response.length() + 1];
 	std::strcpy(c_response, response.c_str());
-	if (sendto(newClientSocket, c_response, response.length(), 0, 
+	if (sendto(newClientSocket, c_response, response.length(), 0,
                (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
         perror("Fehler beim Senden der Antwort");
         // close(client_fd);
@@ -138,7 +138,7 @@ std::string replacePath(std::string sbegin, const std::string& s1, const std::st
 	if(s1.length() == 1)
 	{
 		slash = "/";
-	} 
+	}
     while ((pos = sbegin.find(s1, pos)) != std::string::npos) {
         sbegin.replace(pos, s1.length(), s2 + slash);
         pos += s2.length() + slash.length(); // Move past the replacement to avoid infinite loops
@@ -146,7 +146,7 @@ std::string replacePath(std::string sbegin, const std::string& s1, const std::st
     return sbegin;
 }
 
-void Client::iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles)
+bool Client::iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles)
 {
 	for (const auto& file : indexFiles)
 	{
@@ -157,8 +157,10 @@ void Client::iterateIndexFiles(std::string basicPath, std::vector<std::string> i
 			continue;
 		}
 		responseBody = extractFile(indexFile);
+		return true;
 		// std::cout << responseBody << "\n";
 	}
+	return false;
 }
 
 void		Client::buildResponseBody()
@@ -193,8 +195,8 @@ void		Client::buildResponseBody()
 	}
 	if(location)
 	{
-		std::ifstream responseFile("tmp/www");
-		// std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
+		// std::ifstream responseFile("tmp/www");
+		std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
 		if (!responseFile)
 		{
 			statusCode = 404;
@@ -209,12 +211,24 @@ void		Client::buildResponseBody()
 				std::cout << "test6\n";
 				indexFiles = _server_config.serverBlock[index].getIndexFiles();
 			}
-			iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles);
+			if(!iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles))
+			{
+				if(location->getDirectoryListing())
+				{
+					for (const auto& entry : std::filesystem::directory_iterator(finalPath.substr(1, finalPath.length() - 1))) {
+						responseBody += entry.path().filename().string() + "<br>";
+					}
+				}
+				else
+				{
+					statusCode = 403;
+				}
+			}
 			return;
 		}
 		std::cout << "test6\n";
 		responseBody = extractFile(responseFile);
-		
+
 	}
 	if(req.get_path() == "/")
 	{

@@ -1,6 +1,0 @@
-	location / {
-		root /tmp/www;
-		index index.html;
-		
-		
-	}
