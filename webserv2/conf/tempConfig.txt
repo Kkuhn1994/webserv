@@ -1,14 +1,16 @@
 server {
-	listen 8007;
+	listen 8008;
 	
 	server_name example.com;
 	root /var/www/example.com;
 	index index.html;
 location /api {
+	autoindex off;
 	root /tmp/www;
 	index index1.html;
 }
 	location / {
+		autoindex on;
 		root /tmp/www;
 		index index.html;
 		

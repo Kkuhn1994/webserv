@@ -25,6 +25,7 @@ public:
     std::string                 isRedirected();
 	int							getStatusCode();
     std::vector<std::string>    getIndexFiles();
+    bool                        getDirectoryListing();
 
 
 private:
@@ -54,6 +55,7 @@ private:
     void extractCGIPass(std::ifstream &locationFile);
     void extractCGIParams(std::ifstream &locationFile);
     void extractInclude(std::ifstream &locationFile);
+    void extractDirectoryListing(std::ifstream &locationFile);
     
     void setCGIPass(std::string _fastCGIPass);
     std::string getCGIPass();

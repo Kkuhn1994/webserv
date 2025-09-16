@@ -169,7 +169,7 @@
 # to sites-enabled/ to enable it.
 #
 server {
-	listen 8007;
+	listen 8008;
 	# listen [::]:8001;
 
 	server_name example.com;
@@ -178,6 +178,7 @@ server {
 	index index.html;
 
 location /api {
+	autoindex off;
 	root /tmp/www;
 	index index1.html;
 #     limit_except  POST PUT DELETE {
@@ -189,6 +190,7 @@ location /api {
 }
 
 	location / {
+		autoindex on;
 		root /tmp/www;
 		index index.html;
 		# return 302 http://localhost:80/api;

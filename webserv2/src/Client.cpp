@@ -146,7 +146,7 @@ std::string replacePath(std::string sbegin, const std::string& s1, const std::st
     return sbegin;
 }
 
-void Client::iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles)
+bool Client::iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles)
 {
 	for (const auto& file : indexFiles)
 	{
@@ -157,8 +157,10 @@ void Client::iterateIndexFiles(std::string basicPath, std::vector<std::string> i
 			continue;
 		}
 		responseBody = extractFile(indexFile);
+		return true;
 		// std::cout << responseBody << "\n";
 	}
+	return false;
 }
 
 void		Client::buildResponseBody()
@@ -209,12 +211,24 @@ void		Client::buildResponseBody()
 				std::cout << "test6\n";
 				indexFiles = _server_config.serverBlock[index].getIndexFiles();
 			}
-			iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles);
+			if(!iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles))
+			{
+				if(location->getDirectoryListing())
+				{
+					for (const auto& entry : std::filesystem::directory_iterator(finalPath.substr(1, finalPath.length() - 1))) {
+						responseBody += entry.path().filename().string() + "<br>";
+					}
+				}
+				else
+				{
+					statusCode = 403;
+				}
+
+			}
 			return;
 		}
 		std::cout << "test6\n";
-		responseBody = extractFile(responseFile);
-		
+		responseBody = extractFile(responseFile);	
 	}
 	if(req.get_path() == "/")
 	{
@@ -222,8 +236,6 @@ void		Client::buildResponseBody()
 		//try index files
 		iterateIndexFiles("webcontent/", indexFiles);
 	}
-
-
 }
 
 

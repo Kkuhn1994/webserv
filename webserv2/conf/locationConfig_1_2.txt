@@ -1,4 +1,5 @@
 	location / {
+		autoindex on;
 		root /tmp/www;
 		index index.html;
 		

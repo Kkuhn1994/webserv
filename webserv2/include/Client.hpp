@@ -55,7 +55,7 @@ class Client
 
 		void		buildResponseBody();
 		std::string choseRootPath(LocationRedirect *location);
-		void iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles);
+		bool iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles);
 
 		
 };
