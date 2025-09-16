@@ -1,4 +1,4 @@
-#include "LocationRedirect.hpp"
+#include "../include/LocationRedirect.hpp"
 
 void LocationRedirect::extractRedirections(std::ifstream &locationFile)
 {

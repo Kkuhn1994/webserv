@@ -2,7 +2,6 @@
 
 WebServer::WebServer(const std::string Path) : config_path(Path), full_request("")
 {
-	// config = ConfService(this->config_path);
 	_server = socket(AF_INET, SOCK_STREAM, 0);
     if (_server < 0) {
         perror("socket failed");
@@ -10,7 +9,6 @@ WebServer::WebServer(const std::string Path) : config_path(Path), full_request("
     }
 	config.initialize(Path);
 
-	std::cout << "LAL\n";
 }
 
 WebServer::~WebServer()
@@ -18,9 +16,9 @@ WebServer::~WebServer()
 	poll_fds.clear();
 }
 
-void WebServer::openSockets()
+void WebServer::openServerSockets() // all these throw statements should be cleaned for potential leaks
 {
-	int	index = 0;
+	_n_server = 0;
 	for (std::vector<ServerBlock>::iterator it = config.serverBlock.begin(); it != config.serverBlock.end(); it++)
 	{
 		struct pollfd listening_poll;
@@ -44,224 +42,66 @@ void WebServer::openSockets()
 		int optreturn = setsockopt(this->_server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 		std::cout << optreturn << "\n";
 		if (optreturn == -1) {
-			perror("setsockopt failed");
+			throw std::runtime_error("setsockopt failed");
 		}
 		if (optreturn != 0)
 			throw std::runtime_error("Could not set socket options");
 		if (bind(listening_poll.fd, (struct sockaddr*)&(_address), sizeof(_address)) < 0)
 			throw std::runtime_error("Error binding server socket port");
-		int listenreturn = listen(listening_poll.fd, SOMAXCONN); // why 3
+		int listenreturn = listen(listening_poll.fd, SOMAXCONN);
 		if (listenreturn < 0)
 			throw std::runtime_error("Could not listen");
 		listening_poll.events = POLLIN;
 		listening_poll.revents = 0;
 		poll_fds.push_back(listening_poll);
 
-		std::cout << "Socket " << (index++) << " (FD " << listening_poll.fd
+		_n_server++;
+		std::cout << "Socket " << _n_server << " (FD " << listening_poll.fd
 				  << ") is listening on: " << "edit host here" << ":" << it.base()->getPort() << std::endl;
 	}
 }
 
 void WebServer::loopPollEvents()
 {
+	int index = 0;
 	while(1)
 	{
-		int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
+		// add shutdown check, implemented to also be called from destructor
+		int poll_count = poll(poll_fds.data(), poll_fds.size(), 1000); // we should probably not give a negative timeout for poll
         if (poll_count < 0)
-        {
-            throw std::runtime_error("Error with poll()");
-        }
-		for (size_t index = 0; index < poll_fds.size(); index ++)
+			continue ;
+		index = 0;
+		for (std::vector<struct pollfd>::iterator it = poll_fds.begin(); it != poll_fds.end(); it++)
 		{
-			if (poll_fds[index].revents & POLLIN) {
-				acceptRequest(index);
-				sendResponse(index);
-			} else if (poll_fds[index].revents & POLLERR) {
-				std::cout << "Socket error occurred.\n";
-			} else if (poll_fds[index].revents & POLLHUP) {
-				std::cout << "Socket hung up (client disconnected).\n";
-			}
-		}
-	}
-}
-
-void		WebServer::acceptRequest(int index)
-{
-	std::cout << "Request received (POLLIN)\n";
-    socklen_t addrlen = sizeof(client_addr);
-    
-    client_fd = accept(poll_fds[index].fd, (struct sockaddr*)&client_addr, &addrlen);
-    if (client_fd < 0) {
-        perror("accept failed");
-        return;
-    }
-    char buffer[1024];
-	full_request = "";
-    
-    ssize_t bytes_received;
-    while ((bytes_received = recv(client_fd, buffer, sizeof(buffer), 0)) > 0) {
-        full_request.append(buffer, bytes_received);
-        if (full_request.find("\r\n\r\n") != std::string::npos) {
-            break; // Anfrage ist wahrscheinlich vollständig
-        }
-    }
-    if (bytes_received < 0) {
-        perror("recv failed");
-        close(client_fd);
-        return;
-    }
-	std::cout << "test2\n";
-}
-
-void		WebServer::sendResponse(int index)
-{
-	// std::cout << full_request << "\n";
-	req.add(full_request);
-	buildResponseBody(index);
-	std::cout << "testreturn\n";
-	// std::cout << "get_path(): " << req.get_path() << std::endl;
-    // std::cout << "get_path_o(): " << req.get_path_o() << std::endl;
-
-    // // Content getters
-    // std::cout << "get_body(): " << req.get_body() << std::endl;
-    // std::cout << "get_method_enum(): " << req.get_method_enum() << std::endl;
-    // std::cout << "get_method(): " << req.get_method() << std::endl;
-    // std::cout << "get_version(): " << req.get_version() << std::endl;
-    // std::cout << "get_header(\"example_key\"): " << req.get_header("example_key") << std::endl;
-    // std::cout << "get_req(): " << req.get_request() << std::endl;
-	// std::cout << req.get_path() << "\n";
-
-	std::string  response = 
-		    std::string("HTTP/1.1 200 OK\r\n") +
-			"Content-Type: text/html; charset=UTF-8\r\n" +
-			"Content-Length: " + std::to_string(responseBody.length()) + "\r\n" +
-			"\r\n" +
-			responseBody;
-	char* c_response = new char[response.length() + 1];
-	std::strcpy(c_response, response.c_str());
-	if (sendto(client_fd, c_response, response.length(), 0, 
-               (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
-        perror("Fehler beim Senden der Antwort");
-        close(client_fd);
-        return ;
-    }
-    close(client_fd);
-	req.clear();
-}
-
-std::string WebServer::choseRootPath(int index, LocationRedirect *location)
-{
-	std::string rootPath = location->getRoot();
-	if(rootPath == "")
-	{
-		rootPath = config.serverBlock[index].getRoot();
-	}
-	return rootPath;
-}
-
-std::string replacePath(std::string sbegin, const std::string& s1, const std::string& s2) {
-    size_t pos = 0;
-	std::string slash = "";
-	if(s1.length() == 1)
-	{
-		slash = "/";
-	} 
-    while ((pos = sbegin.find(s1, pos)) != std::string::npos) {
-        sbegin.replace(pos, s1.length(), s2 + slash);
-        pos += s2.length() + slash.length(); // Move past the replacement to avoid infinite loops
-	}
-    return sbegin;
-}
-bool WebServer::iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles)
-{
-	for (const auto& file : indexFiles)
-	{
-		std::ifstream indexFile(basicPath + file);
-		if (!indexFile)
-		{
-			continue;
-		}
-		responseBody = extractFile(indexFile);
-		return true;
-	}
-	return false;
-}
-
-void		WebServer::buildResponseBody(int index)
-{
-	LocationRedirect *location;
-	std::string finalPath;
-	// std::cout << req.get_path() << " path\n";
-	std::string path = req.get_path();
-	std::string isRedirected = "no";
-	while(isRedirected != "")
-	{
-		location = config.serverBlock[index].getBestMatchingLocation(path);
-		if(location)
-		{
-			std::string rootPath = choseRootPath(index, location);
-			std::string locationUrl = location->getUrl();
-			finalPath = replacePath(req.get_path(), locationUrl, rootPath);
-			std::vector<std::string> restrictedMethods = location->getRestrictedMethods();
-			for(std::vector<std::string>::iterator it = restrictedMethods.begin(); it != restrictedMethods.end(); it ++)
-			{
-				if(*it.base() != req.get_method())
+			if (it->revents & POLLIN) {
+				std::cout << "in\n";
+				if (it < poll_fds.begin() + _n_server)
 				{
-					std::cout << "restricted method\n";
-					statusCode = location->getStatusCode();
-					responseBody = location->getMessage();
-					return;
-				}
-			}
-			isRedirected = location->isRedirected();
-			// std::cout << isRedirected << "\n";
-			path = isRedirected;
-		}
-	}
-	if(location)
-	{
-		// std::cout << finalPath.substr(1, finalPath.length() - 1) << "\n;";
-		std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
-		if (!responseFile)
-		{
-			statusCode = 404;
-			return;
-		}
-		else if (std::filesystem::is_directory(finalPath.substr(1, finalPath.length() - 1)))
-		{
-			std::vector<std::string> indexFiles = location->getIndexFiles();
-			if(indexFiles.size() == 0)
-			{
-				indexFiles = config.serverBlock[index].getIndexFiles();
-			}
-			if(!iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles))
-			{
-				if(location->getDirectoryListing())
-				{
-					for (const auto& entry : std::filesystem::directory_iterator(finalPath.substr(1, finalPath.length() - 1))) {
-						responseBody += entry.path().filename().string() + "<br>";
-					}
+					std::cout << "new\n";
+					std::cout << "received new client stored at " << it->fd << "\n";
+					Client c(it->fd, config, index);
+					std::cout << "original " << c.get_socket() << "\n";
+					this->_clients.insert(std::make_pair(c.get_socket(), c));
+					std::cout << "received new client stored at " << it->fd << " its fd is " << c.get_socket() << "\n";
+					this->poll_fds.push_back(c.get_pollfd());
+					break ;
 				}
 				else
 				{
-					statusCode = 403;
+					std::cout << "old\n";
+					this->_clients[it->fd].recieve_packet(it->fd);
+					if (this->_clients[it->fd].get_request().length() > 0)
+						this->_clients[it->fd].get_request();
+
+					this->_clients[it->fd].sendResponse();
+					this->_clients[it->fd].clear();
 				}
-
+			} else if (it->revents & POLLERR) {
+				std::cout << "Socket error occurred.\n";
+			} else if (it->revents & POLLHUP) {
+				std::cout << "Socket hung up (client disconnected).\n";
 			}
-			return;
+			index ++;
 		}
-		responseBody = extractFile(responseFile);
-		
 	}
-	if(req.get_path() == "/")
-	{
-		std::vector<std::string> indexFiles = config.serverBlock[index].getIndexFiles();
-		//try index files
-		iterateIndexFiles("webcontent/", indexFiles);
-	}
-
-
 }
-
-
-

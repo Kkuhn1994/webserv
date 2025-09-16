@@ -11,6 +11,7 @@ OBJECTS		=	$(addprefix $(OBJ_DIR),$(addsuffix .o,$(FILES)))
 
 FILES	=	\
 			ConfService \
+			Client \
 			ServerBlock \
 			LocationRedirect \
 			Request \
@@ -28,17 +29,16 @@ $(OBJ_DIR)%.o : $(SRC_DIR)%.cpp
 
 all: $(NAME)
 
-clean:
-	@rm -rf $(OBJ_DIR)
+n_files:
 	@rm -rf conf/*ServerConfig*
 	@rm -rf conf/*locationConfig*
 	@rm -rf conf/*tempConfig*
 
+clean: n_files
+	@rm -rf $(OBJ_DIR)
+
 fclean: clean
 	@rm -f $(NAME)
-	@rm -rf conf/*ServerConfig*
-	@rm -rf conf/*locationConfig*
-	@rm -rf conf/*tempConfig*
 
 re: fclean all
 
