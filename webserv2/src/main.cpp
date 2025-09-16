@@ -26,20 +26,20 @@ int main(int argc, char  *argv[])
 			if(argc == 2) 
 			{
 				WebServer server(argv[1]);
-				server.openSockets();
+				server.openServerSockets();
 				server.loopPollEvents();
 			}
 			else 
 			{
 				WebServer server(DEFAULT_CONFIG);
-				server.openSockets();
+				server.openServerSockets();
 				server.loopPollEvents();
 			}
 			
 		}
 		catch(const std::exception& e)
 		{
-			std::cerr << "\e[5;2;38;240;23;23m" << "[WBSRV] ERROR: " << e.what() << "\e[0m" << std::endl;
+			std::cerr << C_GRAY << "[WBSRV] ERROR: " << e.what() << C_NONE << std::endl;
 		}
 
 

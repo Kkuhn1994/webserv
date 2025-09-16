@@ -1,0 +1,4 @@
+location /api {
+	root /tmp/www;
+	index index1.html;
+}
