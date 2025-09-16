@@ -95,7 +95,6 @@ void WebServer::loopPollEvents()
 
 					this->_clients[it->fd].sendResponse();
 					this->_clients[it->fd].clear();
-
 				}
 			} else if (it->revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";

@@ -22,6 +22,32 @@ void LocationRedirect::extractRedirections(std::ifstream &locationFile)
 	}
 }
 
+void LocationRedirect::extractDirectoryListing(std::ifstream &locationFile)
+{
+std::string line;
+	std::regex pattern(R"(autoindex\s+(on|off))");
+
+	while (std::getline(locationFile, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line,match,pattern))
+		{
+			if(match[1] == "on")
+			{
+				directoryListing = true;
+				return;
+			}
+			else if(match[1] == "off")
+			{
+				directoryListing = false;
+				return;
+			}
+			break;
+		}
+	}
+	directoryListing = false;
+}
+
  void  LocationRedirect::initialize(int index1, int index2, std::ifstream &locationFile)
  {
 	extractPossibleRequests(locationFile, index1, index2);
@@ -45,10 +71,14 @@ void LocationRedirect::extractRedirections(std::ifstream &locationFile)
 	defaultTryFiles = extractTryFiles(locationfile);
 	locationfile.clear();
 	locationfile.seekg(0, std::ios::beg);
+		extractDirectoryListing(locationfile);
+	locationfile.clear();
+	locationfile.seekg(0, std::ios::beg);
 	extractCGIStuff(locationfile);
 	locationfile.clear();
 	locationfile.seekg(0, std::ios::beg);
-	    std::cout << "URL: " << url << std::endl;
+
+	    std::cout << "URL:" << url << std::endl;
  }
 
 LocationRedirect::LocationRedirect() : rootPath(""), redirection("")
@@ -105,6 +135,8 @@ void LocationRedirect::extractCGIStuff(std::ifstream &locationFile)
 	locationFile.clear();
 	locationFile.seekg(0, std::ios::beg);
 	extractInclude(locationFile);
+		locationFile.clear();
+	locationFile.seekg(0, std::ios::beg);
 }
 
 
@@ -266,8 +298,13 @@ void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile, int 
 		std::smatch match;
 		if(std::regex_search(line, match, locationRegex) && match.size() > 1)
 		{
-			std::vector<std::string> request = split(match[1]);
-			request.pop_back();
+			std::string matchStr = match[1];
+			size_t bracePos = matchStr.find('{');
+			if (bracePos != std::string::npos) {
+				matchStr = matchStr.substr(0, bracePos); // Teile den String bis vor die erste '{'
+			}
+			
+			std::vector<std::string> request = split(matchStr);
 			restrictedMethods = request;
 			std::string fileName = "conf/limit_except_locationConfig_" + std::to_string(index1) + "_" + std::to_string(index2) + ".txt";
 			
@@ -301,7 +338,7 @@ void LocationRedirect::extractPossibleRequests(std::ifstream &locationFile, int 
 
 void LocationRedirect::initIndexFiles(std::ifstream &serverFile)
 {
-	std::regex pattern(R"(index\s+([^;]+))");
+	std::regex pattern(R"(^\s*index\s+([^;]+))");
 	std::string line;
 	while (std::getline(serverFile, line))
 	{
@@ -349,4 +386,9 @@ std::string LocationRedirect::isRedirected()
 std::vector<std::string> LocationRedirect::getIndexFiles()
 {
 	return indexFiles;
+}
+
+bool LocationRedirect::getDirectoryListing()
+{
+	return directoryListing;
 }

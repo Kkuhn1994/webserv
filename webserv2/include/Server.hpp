@@ -48,6 +48,7 @@ class WebServer
 		// bool		validateFilename(std::string filename);
 
 
+
 		ConfService					config;
 		Request						req;
 	
