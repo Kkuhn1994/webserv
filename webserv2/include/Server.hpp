@@ -17,7 +17,7 @@
 #include <set>
 #include <netdb.h>
 #include <filesystem>
-
+#include <csignal>
 
 
 #include "ConfService.hpp"
@@ -27,6 +27,9 @@
 
 #define BUF_SIZE 1024
 #define POLL_TIMEOUT 200
+
+
+
 
 
 class WebServer
@@ -46,7 +49,7 @@ class WebServer
 
 		// bool		deleteIfExists(std::string filename);
 		// bool		validateFilename(std::string filename);
-
+		// void 						handle_sigint(int signal);
 
 
 		ConfService					config;
@@ -62,5 +65,7 @@ class WebServer
 		int							_n_server;
 		int 						client_fd;
 		struct sockaddr_in 			client_addr;
+
+
 		
 };

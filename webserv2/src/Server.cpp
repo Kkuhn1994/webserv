@@ -1,5 +1,8 @@
 #include "../include/Server.hpp"
 
+
+std::vector<struct pollfd>* g_poll_fds_ptr = nullptr;
+
 WebServer::WebServer(const std::string Path) : config_path(Path), full_request("")
 {
 	_server = socket(AF_INET, SOCK_STREAM, 0);
@@ -16,9 +19,22 @@ WebServer::~WebServer()
 	poll_fds.clear();
 }
 
+void handle_sigint(int signal) {
+	std::cout << "\nSIGINT empfangen. Server wird heruntergefahren...\n";
+	if (g_poll_fds_ptr) {
+		for (auto& pfd : *g_poll_fds_ptr) {
+			std::cout << "Schließe Socket FD: " << pfd.fd << "\n";
+			close(pfd.fd);
+		}
+	}
+	std::exit(0);
+}
 void WebServer::openServerSockets() // all these throw statements should be cleaned for potential leaks
 {
 	_n_server = 0;
+	g_poll_fds_ptr = &poll_fds;
+
+	std::signal(SIGINT, handle_sigint);
 	for (std::vector<ServerBlock>::iterator it = config.serverBlock.begin(); it != config.serverBlock.end(); it++)
 	{
 		struct pollfd listening_poll;
@@ -83,7 +99,7 @@ void WebServer::loopPollEvents()
 					std::cout << "original " << c.get_socket() << "\n";
 					this->_clients.insert(std::make_pair(c.get_socket(), c));
 					std::cout << "received new client stored at " << it->fd << " its fd is " << c.get_socket() << "\n";
-					this->poll_fds.push_back(c.get_pollfd());
+					poll_fds.push_back(c.get_pollfd());
 					break ;
 				}
 				else
