@@ -318,7 +318,6 @@ bool endsWith(const std::string& str, const std::string& suffix) {
 }
 
 // CGI ADDITION: Simple function to check if the request is for a CGI script
-// NOTE: This is redundant since CGIExecutor::isCGIFile() does the same thing
 bool isCGIRequest(const std::string& path) {
-	return endsWith(path, ".php") || endsWith(path, ".py") || endsWith(path, ".cgi");
+	return endsWith(path, ".php") || endsWith(path, ".py") || endsWith(path, ".pl");
 }

@@ -12,7 +12,6 @@ CGIExecutor::CGIExecutor() : m_timeout(30), m_maxOutputSize(1024 * 1024) {
 }
 
 CGIExecutor::~CGIExecutor() {
-    // Nothing to clean up
 }
 
 CGIResponse CGIExecutor::execute(const CGIRequest& request) {
@@ -64,7 +63,7 @@ CGIResponse CGIExecutor::execute(const CGIRequest& request) {
         // Execute interpreter
         execl(interpreter.c_str(), interpreter.c_str(), request.scriptPath.c_str(), nullptr);
         
-        // If we get here, exec failed
+        // exec failed
         perror("execl failed");
         exit(1);
     } else {
@@ -134,7 +133,7 @@ bool CGIExecutor::isCGIFile(const std::string& path) {
     std::string ext = path.substr(dot);
     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
     
-    return (ext == ".php" || ext == ".py" || ext == ".cgi" || ext == ".pl");
+    return (ext == ".php" || ext == ".py" || ext == ".pl");
 }
 
 std::string CGIExecutor::getInterpreter(const std::string& path) {
@@ -146,17 +145,17 @@ std::string CGIExecutor::getInterpreter(const std::string& path) {
     
     if (ext == ".php") {
         // Try different PHP locations
+        if (access("/opt/homebrew/bin/php", X_OK) == 0) return "/opt/homebrew/bin/php";
         if (access("/usr/bin/php", X_OK) == 0) return "/usr/bin/php";
         if (access("/usr/bin/php-cgi", X_OK) == 0) return "/usr/bin/php-cgi";
         if (access("/usr/local/bin/php", X_OK) == 0) return "/usr/local/bin/php";
     } else if (ext == ".py") {
         if (access("/usr/bin/python3", X_OK) == 0) return "/usr/bin/python3";
         if (access("/usr/bin/python", X_OK) == 0) return "/usr/bin/python";
+        if (access("/opt/homebrew/bin/python3", X_OK) == 0) return "/opt/homebrew/bin/python3";
     } else if (ext == ".pl") {
         if (access("/usr/bin/perl", X_OK) == 0) return "/usr/bin/perl";
-    } else if (ext == ".cgi") {
-        // For .cgi files, try to determine from shebang or assume executable
-        return path; // Assume it's executable
+        if (access("/opt/homebrew/bin/perl", X_OK) == 0) return "/opt/homebrew/bin/perl";
     }
     
     return "";
