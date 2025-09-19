@@ -188,3 +188,8 @@ std::string ServerBlock::getRoot() const
 {
 	return rootPath;
 }
+
+std::map<int, std::string>          ServerBlock::getErrorFilePaths()
+{
+	return pathOfErrorFiles;
+}

@@ -1,5 +1,6 @@
 #include "../include/webserv.hpp"
 
+
 int main(int argc, char  *argv[])
 {
 	if (argc > 2) // by subject either have the config as argument or default path i think we need to do both
