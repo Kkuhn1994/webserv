@@ -16,5 +16,5 @@ class Client
 		
 	private:
 		// SocketConfig::ServerConfig			server_config;
-		int			_socket;
+		int			_socket __attribute__((unused));
 };

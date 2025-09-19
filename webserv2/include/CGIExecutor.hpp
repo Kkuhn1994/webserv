@@ -7,7 +7,7 @@
 
 // Simple data structures for CGI communication
 struct CGIRequest {
-    std::string method;           // GET, POST, etc.
+    std::string method;           // GET, POST, DELETE
     std::string scriptPath;       // Full path to CGI script
     std::string queryString;      // URL parameters
     std::string body;             // POST data

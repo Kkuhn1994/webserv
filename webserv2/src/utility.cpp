@@ -82,8 +82,7 @@ std::string extractFile(std::ifstream &in)
 std::string replace(std::string buffer, std::string s1, std::string s2)
 {
 	std::string replacedString;
-	int size_of_s1;
-	int occurence_of_s1;
+	size_t occurence_of_s1;
 
 	occurence_of_s1 = buffer.find(s1);
 	while (occurence_of_s1 != std::string::npos)
@@ -111,7 +110,7 @@ std::string readFileToString(const std::string& filename) {
     file.seekg(0, std::ios::beg);
     std::string content;
     content.resize(size);
-    if (!file.read(content.data(), size)) {
+    if (!file.read(&content[0], size)) {
         throw std::runtime_error("Fehler beim Lesen der Datei: " + filename);
     }
 
@@ -163,8 +162,8 @@ void deleteBlock(std::string fileName1, std::string fileName2, size_t locationSi
 			fileOut << replace(text, s1, s2) << std::endl;
 		fileIn.close();
 		fileOut.close();
-		std::filesystem::remove(fileName1);
-		std::filesystem::rename(fileReplace, fileName1);
+		remove(fileName1.c_str());
+		rename(fileReplace.c_str(), fileName1.c_str());
 	}
 }
 

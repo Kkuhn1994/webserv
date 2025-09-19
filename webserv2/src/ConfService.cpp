@@ -1,7 +1,4 @@
 #include "../include/ConfService.hpp"
-#include <iostream>
-#include <fstream>
-#include <string>
 
 ConfService::ConfService()
 {

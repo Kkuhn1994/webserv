@@ -124,7 +124,7 @@ int pathMatch(std::string path1, std::string path2)
 	for (std::vector<std::string>::iterator it = path1Parts.begin(); it != path1Parts.end(); it++)
 	{
 		// std::cout << path2Parts[index] << "\n";
-		if(index == path2Parts.size())
+		if(static_cast<size_t>(index) == path2Parts.size())
 		{
 			break;
 		}
@@ -152,7 +152,7 @@ LocationRedirect *ServerBlock::getBestMatchingLocation(std::string path)
 		if(highest_match_new > highest_match)
 		{
 
-			if(highest_match_new == 1 && locationPath.length() == 1 || highest_match_new > 1)
+			if((highest_match_new == 1 && locationPath.length() == 1) || highest_match_new > 1)
 			{
 				highest_match = highest_match_new;
 				highest_match_index = index;

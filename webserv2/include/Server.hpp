@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sys/wait.h>
-#include "CGIExecutor.hpp"  // CGI ADDITION: Include modular CGI handler for executing scripts
+#include "CGIExecutor.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <string>
@@ -18,6 +18,9 @@
 #include <sstream>
 #include <netdb.h>
 #include <filesystem>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 
 

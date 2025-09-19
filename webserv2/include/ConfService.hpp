@@ -1,6 +1,10 @@
 #pragma once
 
 #include "ServerBlock.hpp"
+#include <regex>
+#include <iostream>
+#include <fstream>
+#include <string>
 
 #ifndef DEFAULT_CONFIG
 # define DEFAULT_CONFIG "conf/nginxconf"

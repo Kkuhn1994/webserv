@@ -283,7 +283,9 @@ void		WebServer::buildResponseBody(int index)
 			statusCode = 404;
 			return;
 		}
-		else if (std::filesystem::is_directory(cleanPath))
+		
+		struct stat statBuf;
+		if (stat(cleanPath.c_str(), &statBuf) == 0 && S_ISDIR(statBuf.st_mode))
 		{
 			std::cout << "test5\n";
 			std::vector<std::string> indexFiles = location->getIndexFiles();
