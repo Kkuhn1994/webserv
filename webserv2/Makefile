@@ -17,6 +17,7 @@ FILES	=	\
 			Request \
 			utility \
 			Server \
+			CGIExecutor \
 			main
 
 

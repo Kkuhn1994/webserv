@@ -4,3 +4,4 @@
 #include "LocationRedirect.hpp"
 #include "ServerBlock.hpp"
 #include "Server.hpp"
+#include "CGIExecutor.hpp"
