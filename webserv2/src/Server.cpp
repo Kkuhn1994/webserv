@@ -1,4 +1,6 @@
 #include "../include/Server.hpp"
+#include <unistd.h>
+#include <fcntl.h>
 
 
 std::vector<struct pollfd>* g_poll_fds_ptr = nullptr;
@@ -19,7 +21,7 @@ WebServer::~WebServer()
 	poll_fds.clear();
 }
 
-void handle_sigint(int signal) {
+void handle_sigint(int) {
 	std::cout << "\nSIGINT empfangen. Server wird heruntergefahren...\n";
 	if (g_poll_fds_ptr) {
 		for (auto& pfd : *g_poll_fds_ptr) {
@@ -52,10 +54,10 @@ void WebServer::openServerSockets() // all these throw statements should be clea
 		if (listening_poll.fd < 0)
 			throw std::runtime_error("socket: Error creating server socket");
 		#ifdef __APPLE__
-		if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
+		if (fcntl(listening_poll.fd, F_SETFL, O_NONBLOCK) < 0)
 			throw std::runtime_error("Error setting server socket to non-blocking");
 		#endif
-		int optreturn = setsockopt(this->_server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+		int optreturn = setsockopt(listening_poll.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 		std::cout << optreturn << "\n";
 		if (optreturn == -1) {
 			throw std::runtime_error("setsockopt failed");

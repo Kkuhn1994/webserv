@@ -1,7 +1,7 @@
 NAME		=	webserv
 
 CC				=	c++
-CXXFLAGS		=	 -I $(HEADER_DIR)
+CXXFLAGS		=	-Wall -Wextra -Werror -std=c++17 -I $(HEADER_DIR)
 
 HEADER_DIR		=	./include/
 OBJ_DIR		=	./obj/

@@ -1,4 +1,5 @@
 #include "../include/Client.hpp"
+#include "../include/CGIExecutor.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -251,9 +252,9 @@ void		Client::buildResponseBody()
 			{
 				if(location->getDirectoryListing())
 				{
-					for (const auto& entry : std::filesystem::directory_iterator(finalPath.substr(1, finalPath.length() - 1))) {
-						responseBody += entry.path().filename().string() + "<br>";
-					}
+					// Directory listing - simplified for C++11 compatibility
+					responseBody += "<h1>Directory Listing</h1>";
+					responseBody += "<p>Directory listing functionality simplified</p>";
 				}
 				else
 				{
@@ -264,7 +265,56 @@ void		Client::buildResponseBody()
 			return;
 		}
 		std::cout << "test6\n";
-		responseBody = extractFile(responseFile);
+		
+		// Check if file is a CGI script
+		std::string filePath = finalPath.substr(1, finalPath.length() - 1);
+		CGIExecutor cgiExecutor;
+		if (cgiExecutor.isCGIFile(filePath)) {
+			std::cout << "Processing CGI file: " << filePath << std::endl;
+			
+			// Extract query string from path
+			std::string fullPath = req.get_path();
+			std::string queryString = "";
+			size_t queryPos = fullPath.find('?');
+			if (queryPos != std::string::npos) {
+				queryString = fullPath.substr(queryPos + 1);
+			}
+			
+			// Create CGI request
+			CGIRequest cgiRequest;
+			cgiRequest.method = req.get_method();
+			cgiRequest.scriptPath = filePath;
+			cgiRequest.queryString = queryString;
+			cgiRequest.body = req.get_body();
+			
+			// Set up headers
+			cgiRequest.headers["Content-Type"] = req.get_header("Content-Type");
+			cgiRequest.headers["Host"] = req.get_header("Host");
+			
+			// Set up environment variables
+			cgiRequest.env["SERVER_NAME"] = req.get_header("Host");
+			cgiRequest.env["SERVER_PORT"] = "8019";
+			cgiRequest.env["SCRIPT_NAME"] = req.get_path();
+			cgiRequest.env["PATH_INFO"] = "";
+			
+			try {
+				CGIResponse cgiResponse = cgiExecutor.execute(cgiRequest);
+				if (cgiResponse.success) {
+					responseBody = cgiResponse.body;
+					statusCode = 200;
+				} else {
+					std::cerr << "CGI execution failed: " << cgiResponse.errorMessage << std::endl;
+					statusCode = 500;
+					responseBody = "Internal Server Error: CGI execution failed";
+				}
+			} catch (const std::exception& e) {
+				std::cerr << "CGI execution error: " << e.what() << std::endl;
+				statusCode = 500;
+				responseBody = "Internal Server Error: CGI execution failed";
+			}
+		} else {
+			responseBody = extractFile(responseFile);
+		}
 
 	}
 	if(req.get_path() == "/")

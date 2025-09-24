@@ -82,8 +82,7 @@ std::string extractFile(std::ifstream &in)
 std::string replace(std::string buffer, std::string s1, std::string s2)
 {
 	std::string replacedString;
-	int size_of_s1;
-	int occurence_of_s1;
+	size_t occurence_of_s1;
 
 	occurence_of_s1 = buffer.find(s1);
 	while (occurence_of_s1 != std::string::npos)
