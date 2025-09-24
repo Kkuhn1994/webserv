@@ -69,4 +69,5 @@ class WebServer
 		int							statusCode;
 		struct sockaddr_in 			client_addr;
 		std::string					responseBody;
+		bool						connection_valid;
 };

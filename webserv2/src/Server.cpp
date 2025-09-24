@@ -2,11 +2,10 @@
 
 WebServer::WebServer(const std::string Path) : config_path(Path), full_request("")
 {
-	// config = ConfService(this->config_path);
 	_server = socket(AF_INET, SOCK_STREAM, 0);
     if (_server < 0) {
         perror("socket failed");
-        return ;
+        exit(EXIT_FAILURE);
     }
 	config.initialize(Path);
 
@@ -86,7 +85,9 @@ void WebServer::loopPollEvents()
 		{
 			if (poll_fds[index].revents & POLLIN) {
 				acceptRequest(index);
-				sendResponse(index);
+				if (connection_valid) {
+					sendResponse(index);
+				}
 			} else if (poll_fds[index].revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";
 			} else if (poll_fds[index].revents & POLLHUP) {
@@ -98,7 +99,7 @@ void WebServer::loopPollEvents()
 
 void		WebServer::acceptRequest(int index)
 {
-	std::cout << "Request received (POLLIN)\n";
+    connection_valid = false;
     socklen_t addrlen = sizeof(client_addr);
     
     client_fd = accept(poll_fds[index].fd, (struct sockaddr*)&client_addr, &addrlen);
@@ -113,15 +114,28 @@ void		WebServer::acceptRequest(int index)
     while ((bytes_received = recv(client_fd, buffer, sizeof(buffer), 0)) > 0) {
         full_request.append(buffer, bytes_received);
         if (full_request.find("\r\n\r\n") != std::string::npos) {
-            break; // Anfrage ist wahrscheinlich vollständig
+            break;
         }
     }
     if (bytes_received < 0) {
-        perror("recv failed");
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            if (full_request.empty()) {
+                close(client_fd);
+                return;
+            }
+        } else {
+            perror("recv failed");
+            close(client_fd);
+            return;
+        }
+    }
+    
+    if (full_request.empty() || full_request.find("\r\n\r\n") == std::string::npos) {
         close(client_fd);
         return;
     }
-	std::cout << "test2\n";
+    
+    connection_valid = true;
 }
 
 void		WebServer::sendResponse(int index)
@@ -147,10 +161,7 @@ void		WebServer::sendResponse(int index)
 			"Content-Length: " + std::to_string(responseBody.length()) + "\r\n" +
 			"\r\n" +
 			responseBody;
-	char* c_response = new char[response.length() + 1];
-	std::strcpy(c_response, response.c_str());
-	if (sendto(client_fd, c_response, response.length(), 0, 
-               (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
+	if (send(client_fd, response.c_str(), response.length(), 0) < 0) {
         perror("Fehler beim Senden der Antwort");
         close(client_fd);
         return ;
@@ -201,17 +212,34 @@ void		WebServer::buildResponseBody(int index)
 {
 	LocationRedirect *location;
 	std::string finalPath;
-	// std::cout << req.get_path() << " path\n";
 	std::string path = req.get_path();
-	std::string isRedirected = "no";
-	while(isRedirected != "")
+	std::string isRedirected = "INITIAL";
+	int loopCount = 0;
+	while(isRedirected != "" && loopCount < 10)  // Add safety counter
 	{
+		loopCount++;
 		location = config.serverBlock[index].getBestMatchingLocation(path);
 		if(location)
 		{
 			std::string rootPath = choseRootPath(index, location);
 			std::string locationUrl = location->getUrl();
 			finalPath = replacePath(req.get_path(), locationUrl, rootPath);
+			
+			// CGI file check - skip redirects if valid
+			std::string testCleanPath = finalPath.substr(1, finalPath.length() - 1);
+			size_t queryPos = testCleanPath.find('?');
+			std::string filePathOnly = (queryPos != std::string::npos) ? testCleanPath.substr(0, queryPos) : testCleanPath;
+			
+			if (CGIExecutor::isCGIFile(filePathOnly)) {
+				std::ifstream testFile(filePathOnly);
+				if (testFile.good()) {
+					testFile.close();
+					finalPath = "/" + filePathOnly;
+					break; 
+				}
+				testFile.close();
+			}
+			
 			std::vector<std::string> restrictedMethods = location->getRestrictedMethods();
 			for(std::vector<std::string>::iterator it = restrictedMethods.begin(); it != restrictedMethods.end(); it ++)
 			{
@@ -223,25 +251,27 @@ void		WebServer::buildResponseBody(int index)
 				}
 			}
 			isRedirected = location->isRedirected();
-			// std::cout << isRedirected << "\n";
 			path = isRedirected;
 		}
 	}
 	if(location)
 	{
 		std::string cleanPath = finalPath.substr(1, finalPath.length() - 1);
-		std::cout << cleanPath << "\n;";
 		
-		// CGI ADDITION: Check if this is a CGI request by file extension
+		// Strip query string for file access
+		size_t queryPos = cleanPath.find('?');
+		if (queryPos != std::string::npos) {
+			cleanPath = cleanPath.substr(0, queryPos);
+		}
+		
+		// CGI check
 		if (CGIExecutor::isCGIFile(cleanPath)) {
-			CGIExecutor executor;  // CGI ADDITION: Create instance of modular CGI handler
-			
-			// CGI ADDITION: Build CGI request structure with all necessary data
+			CGIExecutor executor;
 			CGIRequest cgiReq;
 			cgiReq.method = req.get_method();
 			cgiReq.scriptPath = cleanPath;
 			
-			// CGI ADDITION: Parse query string from path if it contains '?'
+			// Parse query string
 			std::string fullPath = req.get_path();
 			size_t queryPos = fullPath.find('?');
 			if (queryPos != std::string::npos) {
@@ -251,27 +281,22 @@ void		WebServer::buildResponseBody(int index)
 			}
 			
 			cgiReq.body = req.get_body();
-			
-			// CGI ADDITION: Add HTTP headers to CGI request
 			cgiReq.headers["Content-Type"] = req.get_header("Content-Type");
 			
-			// CGI ADDITION: Add environment variables from location config
-			// This uses your existing CGI config parsing!
+			// Add environment variables from location config
 			std::map<std::string, std::string> params = location->getCGIParams();
 			for (const auto& param : params) {
 				cgiReq.env[param.first] = param.second;
 			}
 			
-			// CGI ADDITION: Execute CGI script and handle response
 			CGIResponse cgiResp = executor.execute(cgiReq);
 			
 			if (cgiResp.success) {
 				responseBody = cgiResp.body;
-				// You could also parse cgiResp.headers for custom headers
 				return;
 			} else {
 				statusCode = 500;
-				responseBody = cgiResp.body; // Contains error page
+				responseBody = cgiResp.body;
 				return;
 			}
 		}
