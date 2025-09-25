@@ -119,7 +119,8 @@ void		Client::sendResponse()
         return ;
     }
     // close(client_fd); !!! fds closen
-	req.clear();
+	// req.clear();
+	std::cout << "response send 1\n";
 }
 
 
@@ -207,8 +208,10 @@ void		Client::buildResponseBody()
 	// std::cout << req.get_path() << " path\n";
 	std::string path = req.get_path();
 	std::string isRedirected = "no";
+	std::cout << "build response begin\n";
 	while(isRedirected != "")
 	{
+		std::cout << "redirect loop\n";
 		location = _server_config.serverBlock[index].getBestMatchingLocation(path);
 		if(location)
 		{
@@ -226,12 +229,19 @@ void		Client::buildResponseBody()
 				}
 			}
 			isRedirected = location->isRedirected();
-			// std::cout << isRedirected << "\n";
+			std::cout << isRedirected << " is redirected\n";
 			path = isRedirected;
 		}
+		else
+		{
+			std::cout << "break\n";
+			break;
+		}
 	}
+	std::cout << "redirection done\n";
 	if(location)
 	{
+		std::cout << "location found\n";
 		// std::ifstream responseFile("tmp/www");
 		std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
 		if (!responseFile)
@@ -319,11 +329,12 @@ void		Client::buildResponseBody()
 	}
 	if(req.get_path() == "/")
 	{
+		std::cout << "standard index files\n";
 		std::vector<std::string> indexFiles = _server_config.serverBlock[index].getIndexFiles();
 		//try index files
 		iterateIndexFiles("webcontent/", indexFiles);
 	}
-
+	std::cout << "request\n";
 
 }
 

@@ -113,6 +113,10 @@ void WebServer::loopPollEvents()
 
 					this->_clients[it->fd].sendResponse();
 					this->_clients[it->fd].clear();
+					poll_fds.pop_back();
+					this->_clients.erase(it->fd);
+					break;
+					std::cout << "response send\n";
 				}
 			} else if (it->revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";
@@ -121,5 +125,6 @@ void WebServer::loopPollEvents()
 			}
 			index ++;
 		}
+		std::cout << "loopend\n";
 	}
 }

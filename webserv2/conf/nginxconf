@@ -201,7 +201,7 @@
 # to sites-enabled/ to enable it.
 #
 server {
-	listen 8019;
+	listen 80;
 	# listen [::]:8001;
 
 	server_name example.com;
@@ -215,11 +215,11 @@ location /api {
 	autoindex off;
 	root /tmp/www;
 	index index1.html;
-#     limit_except  POST PUT DELETE {
-#  # Nur dieses Subnetz darf POST/PUT/DELETE
-#  		deny all;
-#        	return 403 "<html><body><h1>403 Forbidden</h1><p>Zugriff verweigert: Nur IPs aus dem Subnetz 192.168.1.0/24 dürfen POST, PUT oder DELETE verwenden.</p></body></html>";           # Andere IPs werden blockiert
-#     }
+    limit_except  POST PUT DELETE {
+ # Nur dieses Subnetz darf POST/PUT/DELETE
+ 		deny all;
+       	return 403 "<html><body><h1>403 Forbidden</h1><p>Zugriff verweigert: Nur IPs aus dem Subnetz 192.168.1.0/24 dürfen POST, PUT oder DELETE verwenden.</p></body></html>";           # Andere IPs werden blockiert
+    }
 
 }
 
