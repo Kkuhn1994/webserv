@@ -58,5 +58,7 @@ class Client
 		bool					iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles);
 		void 					loadErrorSite();
 
+		bool CGI(std::ifstream &responseFile, std::string finalPath);
+
 		
 };

@@ -12,6 +12,7 @@
 
 std::vector<std::string> split(const std::string &str);
 std::vector<std::string> pathSplit(const std::string &str);
+std::vector<std::string> parameterSplit(const std::string &str);
 std::string resolveWildcardErrorCode(const std::string& errorCode, const std::string& pathToPage);
 std::string extractFile(std::ifstream &in);
 void deleteBlock(std::string fileName1, std::string fileName2, size_t locationSize);

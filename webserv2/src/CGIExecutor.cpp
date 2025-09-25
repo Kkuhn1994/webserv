@@ -131,6 +131,7 @@ bool CGIExecutor::isCGIFile(const std::string& path) {
     if (dot == std::string::npos) return false;
     
     std::string ext = path.substr(dot);
+    std::cout << "ext " << ext << "\n";
     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
     
     return (ext == ".php" || ext == ".py" || ext == ".pl");

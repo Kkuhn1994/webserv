@@ -48,8 +48,8 @@ run_test "Basic PHP CGI" \
 
 # Test 2: PHP CGI with Query String
 run_test "PHP CGI with Query Parameters" \
-    'curl -s -H "Host: example.com" "http://localhost:80/test.php?name=TestUser&id=123"' \
-    "Query String"
+    'curl -s -H "Host: example.com" "http://localhost:80/parameter.php?name=TestUser&age=123"' \
+    "Hello my name is TestUserand i am  123 years old!"
 
 # Test 3: Python CGI
 run_test "Python CGI" \
@@ -90,6 +90,11 @@ run_test "Complex Query String" \
 run_test "Error Handling - Non-existent File" \
     'curl -s -H "Host: example.com" http://localhost:80/nonexistent.php' \
     "500\|Error\|Not Found"
+
+# Test 11: PHP CGI with Query String
+run_test "POST PHP CGI with Query Parameters" \
+    'curl -s -H "Host: example.com" "http://localhost:80/parameter.php" -X POST -d "name=TestUser&age=123"' \
+    "Hello my name is TestUserand i am  123 years old!"
 
 echo -e "\n📊 Test Results Summary"
 echo "======================="

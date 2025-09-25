@@ -35,6 +35,24 @@ std::vector<std::string> split(const std::string &str)
     return tokens;
 }
 
+std::vector<std::string> parameterSplit(const std::string &str)
+{
+    std::vector<std::string> tokens;
+    size_t start = 0;
+    size_t end = 0;
+
+    for (size_t i = 0; i < str.length(); ++i) {
+        if (str[i] == '?'){
+                tokens.push_back(str.substr(start, end - start));
+                start = i;
+                end = i;
+            }
+        end = i + 1;
+    }
+    tokens.push_back(str.substr(start, end - start));
+    return tokens;
+}
+
 
 std::vector<std::string> pathSplit(const std::string &str)
 {
