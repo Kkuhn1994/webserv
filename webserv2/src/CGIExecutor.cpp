@@ -43,7 +43,7 @@ CGIResponse CGIExecutor::execute(const CGIRequest& request) {
         close(error_pipe[0]); close(error_pipe[1]);
         return handleError("Failed to fork process");
     }
-    
+    std::cout << interpreter<< "\n" << std::flush;
     if (pid == 0) {
         // Child process: Execute CGI script
         
@@ -61,7 +61,16 @@ CGIResponse CGIExecutor::execute(const CGIRequest& request) {
         close(error_pipe[0]); close(error_pipe[1]);
         
         // Execute interpreter
-        execl(interpreter.c_str(), interpreter.c_str(), request.scriptPath.c_str(), nullptr);
+        if(interpreter == "/usr/bin/php-cgi")
+        {
+            
+            execl("/usr/bin/php-cgi", "php-cgi", nullptr);
+        }
+        else
+        {
+            execl(interpreter.c_str(), interpreter.c_str(), request.scriptPath.c_str(), nullptr);
+        }
+        
         
         // exec failed
         perror("execl failed");
@@ -146,9 +155,9 @@ std::string CGIExecutor::getInterpreter(const std::string& path) {
     
     if (ext == ".php") {
         // Try different PHP locations
+        if (access("/usr/bin/php-cgi", X_OK) == 0) return "/usr/bin/php-cgi";
         if (access("/opt/homebrew/bin/php", X_OK) == 0) return "/opt/homebrew/bin/php";
         if (access("/usr/bin/php", X_OK) == 0) return "/usr/bin/php";
-        if (access("/usr/bin/php-cgi", X_OK) == 0) return "/usr/bin/php-cgi";
         if (access("/usr/local/bin/php", X_OK) == 0) return "/usr/local/bin/php";
     } else if (ext == ".py") {
         if (access("/usr/bin/python3", X_OK) == 0) return "/usr/bin/python3";
@@ -172,10 +181,13 @@ void CGIExecutor::setMaxOutputSize(size_t bytes) {
 
 void CGIExecutor::setupEnvironment(const CGIRequest& request) {
     // Standard CGI environment variables
+    setenv("REDIRECT_STATUS", "200",1);
     setenv("REQUEST_METHOD", request.method.c_str(), 1);
+    std::cout << request.queryString.c_str() << "\n";
     setenv("QUERY_STRING", request.queryString.c_str(), 1);
     setenv("CONTENT_LENGTH", std::to_string(request.body.length()).c_str(), 1);
-    setenv("SCRIPT_FILENAME", request.scriptPath.c_str(), 1);
+    std::string CGIFullPath = "/home/kkuhn/Desktop/webserv/webserv2/" + request.scriptPath;
+    setenv("SCRIPT_FILENAME", CGIFullPath.c_str(), 1);
     setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
     setenv("SERVER_SOFTWARE", "webserv/1.0", 1);
     
