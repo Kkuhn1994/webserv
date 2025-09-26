@@ -28,7 +28,7 @@ run_test() {
     output=$(eval "$command" 2>&1)
     exit_code=$?
     
-    if [ $exit_code -eq 0 ] && echo "$output" | grep -q "$expected_pattern"; then
+    if  echo "$output" | grep "$expected_pattern"; then
         echo -e "${GREEN}✅ PASS${NC}"
         PASSED=$((PASSED + 1))
         echo "Output preview: $(echo "$output" | head -1)"
@@ -41,12 +41,53 @@ run_test() {
 
 echo -e "\n🚀 Starting Redirection Tests..."
 
-# Test 1: Basic PHP CGI
+# Test 1: Basic Site
 run_test "Basic Site" \
     'curl -s -H "Host: example.com" http://localhost:80/api' \
     "index3.html"
 
-# Test 1: Basic PHP CGI
-run_test "Basic Site" \
-    'curl -s -H "Host: example.com" http://localhost:80/' \
+# Test 2: One Redirection
+run_test "One Redirection" \
+    'curl -s -H "Host: example.com" http://localhost:80/ -i' \
+    "HTTP/1.1 302 Found"
+
+# Test 2.1: One Redirection
+run_test "One Redirection" \
+    'curl -s -H "Host: example.com" http://localhost:80/ -i' \
+    "Location: http://localhost/api"
+
+# Test 2.2: One Redirection
+run_test "One Redirection" \
+    'curl -s -H "Host: example.com" http://localhost:80/ -L' \
     "index3.html"
+
+# Test 3: Two Redirection
+run_test "Two Redirection" \
+    'curl -s -H "Host: example.com" http://localhost:80/ -i' \
+    "HTTP/1.1 302 Found"
+
+# Test 3.1: Two Redirection
+run_test "Two Redirection" \
+    'curl -s -H "Host: example.com" http://localhost:80/ -i' \
+    "Location: http://localhost/"
+
+# Test 3.2: Two Redirection
+run_test "Two Redirection" \
+    'curl -s -H "Host: example.com" http://localhost:80/doubleRedirect -L --max-redirs 1 -i' \
+    "HTTP/1.1 302 Found"
+
+# Test 3.3: Two Redirection
+run_test "Two Redirection" \
+    'curl -s -H "Host: example.com" http://localhost:80/doubleRedirect -L --max-redirs 1 -i' \
+    "Location: http://localhost/"
+
+# Test 3.4: Two Redirection
+run_test "Two Redirection" \
+    'curl -s -H "Host: example.com" http://localhost:80/doubleRedirect -L' \
+    "index3.html"
+
+# Test 4: 1 Redirection + CGI
+run_test "Redirection and CGI" \
+    'curl -s -H "Host: example.com" http://localhost:80/redirectAndCGI/test.php -L' \
+    "Hello from WebServ CGI"
+

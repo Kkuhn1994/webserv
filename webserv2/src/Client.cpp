@@ -149,16 +149,18 @@ std::string Client::choseRootPath(LocationRedirect *location)
 
 std::string replacePath(std::string sbegin, const std::string& s1, const std::string& s2) {
     size_t pos = 0;
+	size_t pos2 = 0;
 	std::string slash = "";
+	std::cout <<sbegin <<"\n";
 	if(s1.length() == 1)
 	{
-		slash = "/";
+		return s2;
 	}
-    while ((pos = sbegin.find(s1, pos)) != std::string::npos) {
-        sbegin.replace(pos, s1.length(), s2 + slash);
-        pos += s2.length() + slash.length(); // Move past the replacement to avoid infinite loops
-	}
-    return sbegin;
+	pos = sbegin.find(s1, pos);
+	pos2 = sbegin.find(s1, pos) + s1.length();
+	std::string result = sbegin.substr(0, pos) + s2 + sbegin.substr(pos2, sbegin.length() - pos2);
+	std::cout << result << "result\n";
+    return result;
 }
 
 bool Client::iterateIndexFiles(std::string basicPath, std::vector<std::string> indexFiles)
@@ -294,6 +296,8 @@ void		Client::buildResponseBody()
 		{
 			std::string rootPath = choseRootPath(location);
 			std::string locationUrl = location->getUrl();
+			std::cout << locationUrl << "\n";
+			std::cout << locationUrl.find_last_of('/') << "\n";
 			finalPath = replacePath(req.get_path(), locationUrl, rootPath);
 			std::vector<std::string> restrictedMethods = location->getRestrictedMethods();
 			for(std::vector<std::string>::iterator it = restrictedMethods.begin(); it != restrictedMethods.end(); it ++)
@@ -309,13 +313,14 @@ void		Client::buildResponseBody()
 			std::cout << isRedirected << " is redirected\n";
 			if(isRedirected != "")
 			{
-				redirectTo = "http://localhost" + isRedirected;
+				redirectTo = "http://localhost" + replacePath(req.get_path(), location->getUrl(), isRedirected);
 				statusCode = 302;
 				return;
 			}
 
 			std::cout << "location found\n";
 			// std::ifstream responseFile("tmp/www");
+			std::cout << finalPath << "\n";
 			finalPath = parameterSplit(finalPath)[0];
 			std::cout << finalPath << "\n";
 			std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
