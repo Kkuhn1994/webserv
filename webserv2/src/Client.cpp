@@ -92,6 +92,7 @@ std::string	Client::get_request(){
 void		Client::sendResponse()
 {
 	req.add(_request);
+	statusCode = 200;
 	buildResponseBody();
 	// std::cout << "get_path(): " << req.get_path() << std::endl;
     // std::cout << "get_path_o(): " << req.get_path_o() << std::endl;
@@ -117,7 +118,7 @@ void		Client::sendResponse()
 	else
 	{
 		response =
-		    std::string("HTTP/1.1 200 OK\r\n") +
+		    std::string("HTTP/1.1 ") + std::to_string(statusCode) + " " + httpStatusCodes[statusCode] + "\r\n"
 			"Content-Type: text/html; charset=UTF-8\r\n" +
 			"Content-Length: " + std::to_string(responseBody.length()) + "\r\n" +
 			"\r\n" +
@@ -326,8 +327,9 @@ void		Client::buildResponseBody()
 			std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
 			if (!responseFile)
 			{
-				std::cout << "404 no responsefile\n";
+			
 				statusCode = 404;
+				loadErrorSite();
 				return;
 			}
 			else if (std::filesystem::is_directory(finalPath.substr(1, finalPath.length() - 1)))

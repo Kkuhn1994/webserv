@@ -91,3 +91,9 @@ run_test "Redirection and CGI" \
     'curl -s -H "Host: example.com" http://localhost:80/redirectAndCGI/test.php -L' \
     "Hello from WebServ CGI"
 
+# Test 4: 1 Redirection + 404 Not Found
+run_test "Redirection + 404 Not Found" \
+    'curl -s -H "Host: example.com" http://localhost:80/redirectAndCGI/unavaillable.php -L -i' \
+    "HTTP/1.1 404 Not Found"
+
+
