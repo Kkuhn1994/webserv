@@ -151,10 +151,10 @@ std::string replacePath(std::string sbegin, const std::string& s1, const std::st
     size_t pos = 0;
 	size_t pos2 = 0;
 	std::string slash = "";
-	std::cout <<sbegin <<"\n";
+	std::cout << sbegin << "replacePathsbegin\n";
 	if(s1.length() == 1)
 	{
-		return s2;
+		return s2 + sbegin;
 	}
 	pos = sbegin.find(s1, pos);
 	pos2 = sbegin.find(s1, pos) + s1.length();
