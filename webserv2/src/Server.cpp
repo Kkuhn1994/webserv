@@ -84,6 +84,7 @@ void WebServer::loopPollEvents()
 	int index = 0;
 	while(1)
 	{
+		std::cout << "loop\n";
 		// add shutdown check, implemented to also be called from destructor
 		int poll_count = poll(poll_fds.data(), poll_fds.size(), 1000); // we should probably not give a negative timeout for poll
         if (poll_count < 0)
@@ -115,8 +116,8 @@ void WebServer::loopPollEvents()
 					this->_clients[it->fd].clear();
 					poll_fds.pop_back();
 					this->_clients.erase(it->fd);
-					break;
 					std::cout << "response send\n";
+					break;		
 				}
 			} else if (it->revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";
@@ -125,6 +126,5 @@ void WebServer::loopPollEvents()
 			}
 			index ++;
 		}
-		std::cout << "loopend\n";
 	}
 }

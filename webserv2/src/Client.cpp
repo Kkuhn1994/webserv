@@ -49,6 +49,7 @@ void	Client::clear()
 int	Client::recieve_packet(int fd)
 {
 	// basically get_next_line
+	std::cout << "rec\n";
 	char request_chunk[PACKAGE_SIZE];
 	memset(request_chunk, 0, PACKAGE_SIZE);
 	ssize_t bytes_read = recv(fd, request_chunk, PACKAGE_SIZE, MSG_DONTWAIT);
@@ -103,13 +104,25 @@ void		Client::sendResponse()
     // std::cout << "get_header(\"example_key\"): " << req.get_header("example_key") << std::endl;
     // std::cout << "get_req(): " << req.get_request() << std::endl;
 	// std::cout << req.get_path() << "\n";
-
-	std::string  response =
+	std::string  response;
+	if(statusCode == 302)
+	{
+		response =  "HTTP/1.1 302 Found\r\n"
+					"Location: " + redirectTo + "\r\n"
+					"Content-Length: 0\r\n"
+					"Connection: close\r\n"
+					"\r\n";
+		std::cout << response << "\n";
+	}
+	else
+	{
+		response =
 		    std::string("HTTP/1.1 200 OK\r\n") +
 			"Content-Type: text/html; charset=UTF-8\r\n" +
 			"Content-Length: " + std::to_string(responseBody.length()) + "\r\n" +
 			"\r\n" +
 			responseBody;
+	}
 	char* c_response = new char[response.length() + 1];
 	std::strcpy(c_response, response.c_str());
 	if (sendto(newClientSocket, c_response, response.length(), 0,
@@ -256,6 +269,15 @@ bool Client::CGI(std::ifstream &responseFile, std::string finalPath)
 		}
 }
 
+std::string redirect(std::string newPath)
+{
+	std::string html1 = "<!DOCTYPE html><html><head><title>Testseite</title></head><body>";
+	std::string href = "<a href=\"http://localhost" + newPath + "\"></a>";
+	std::string html2 = "</body></html>";
+	std::cout << href << "\n";
+	return html1 + "\n" + href + "\n" + html2;
+}
+
 void		Client::buildResponseBody()
 {
 	LocationRedirect *location;
@@ -264,8 +286,8 @@ void		Client::buildResponseBody()
 	std::string path = req.get_path();
 	std::string isRedirected = "no";
 	std::cout << "build response begin\n";
-	while(isRedirected != "")
-	{
+	// while(isRedirected != "")
+	// {
 		std::cout << "redirect loop\n";
 		location = _server_config.serverBlock[index].getBestMatchingLocation(path);
 		if(location)
@@ -285,56 +307,53 @@ void		Client::buildResponseBody()
 			}
 			isRedirected = location->isRedirected();
 			std::cout << isRedirected << " is redirected\n";
-			path = isRedirected;
-		}
-		else
-		{
-			std::cout << "break\n";
-			break;
-		}
-	}
-	std::cout << "redirection done\n";
-	if(location)
-	{
-		std::cout << "location found\n";
-		// std::ifstream responseFile("tmp/www");
-		finalPath = parameterSplit(finalPath)[0];
-		std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
-		if (!responseFile)
-		{
-			std::cout << "404 no responsefile\n";
-			statusCode = 404;
-			return;
-		}
-		else if (std::filesystem::is_directory(finalPath.substr(1, finalPath.length() - 1)))
-		{
-			std::cout << "test5\n";
-			std::vector<std::string> indexFiles = location->getIndexFiles();
-			if(indexFiles.size() == 0)
+			if(isRedirected != "")
 			{
-				std::cout << "test6\n";
-				indexFiles = _server_config.serverBlock[index].getIndexFiles();
+				redirectTo = "http://localhost" + isRedirected;
+				statusCode = 302;
+				return;
 			}
-			if(!iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles))
+
+			std::cout << "location found\n";
+			// std::ifstream responseFile("tmp/www");
+			finalPath = parameterSplit(finalPath)[0];
+			std::cout << finalPath << "\n";
+			std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
+			if (!responseFile)
 			{
-				if(location->getDirectoryListing())
-				{
-					// Directory listing - simplified for C++11 compatibility
-					responseBody += "<h1>Directory Listing</h1>";
-					responseBody += "<p>Directory listing functionality simplified</p>";
-				}
-				else
-				{
-					statusCode = 403;
-					loadErrorSite();
-				}
+				std::cout << "404 no responsefile\n";
+				statusCode = 404;
+				return;
 			}
-			return;
-		}
-		CGI(responseFile, finalPath);
-		std::cout << "test6\n";
-		
-		
+			else if (std::filesystem::is_directory(finalPath.substr(1, finalPath.length() - 1)))
+			{
+				std::cout << "test5\n";
+				std::vector<std::string> indexFiles = location->getIndexFiles();
+				if(indexFiles.size() == 0)
+				{
+					std::cout << "test6\n";
+					indexFiles = _server_config.serverBlock[index].getIndexFiles();
+				}
+				if(!iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles))
+				{
+					if(location->getDirectoryListing())
+					{
+						// Directory listing - simplified for C++11 compatibility
+						responseBody += "<h1>Directory Listing</h1>";
+						responseBody += "<p>Directory listing functionality simplified</p>";
+					}
+					else
+					{
+						statusCode = 403;
+						loadErrorSite();
+					}
+				}
+				return;
+			}
+			CGI(responseFile, finalPath);
+			std::cout << "test6\n";
+			
+			
 
 	}
 	if(req.get_path() == "/")

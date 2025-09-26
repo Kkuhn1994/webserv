@@ -232,6 +232,17 @@ location /api {
 		# try_files $uri $uri/ =404;
 	}
 	error_page 510 502 513 504 /5xx.html;
+		
+	location ~ \.php$ {
+        include fastcgi_params; # Lädt Standard-FastCGI-Parameter
+        fastcgi_pass unix:/var/run/fcgiwrap.socket; # Adresse des PHP-FPM-Servers
+		
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        # fastcgi_param QUERY_STRING $query_string;
+        # fastcgi_param REQUEST_METHOD $request_method;
+        # fastcgi_param CONTENT_TYPE $content_type;
+        # fastcgi_param CONTENT_LENGTH $content_length;
+    }
 }
 
 # server {

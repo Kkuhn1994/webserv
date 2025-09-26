@@ -52,6 +52,7 @@ class Client
 		struct sockaddr_in 		client_addr;
 		std::string				responseBody;
 		int						statusCode;
+		std::string				redirectTo;
 
 		void					buildResponseBody();
 		std::string				choseRootPath(LocationRedirect *location);
