@@ -1,5 +1,7 @@
 #!/bin/bash
 
+##nginx_redirection_test
+
 echo "🧪 Comprehensive CGI Server Testing"
 echo "=================================="
 
@@ -95,5 +97,15 @@ run_test "Redirection and CGI" \
 run_test "Redirection + 404 Not Found" \
     'curl -s -H "Host: example.com" http://localhost:80/redirectAndCGI/unavaillable.php -L -i' \
     "HTTP/1.1 404 Not Found"
+
+# Test 4: 1 Redirection + 404 Not Found
+run_test "404 Not Found Default" \
+    'curl -s -H "Host: example.com" http://localhost:80/api/unavaillable.php -i' \
+    "404 Not Found Default"
+
+# Test 4: 1 Redirection + 404 Not Found
+run_test "403 Not Found Default" \
+    'curl -s -H "Host: example.com" http://localhost:80/api/permissionDenied.html -i' \
+    "403 Forbidden Default"
 
 

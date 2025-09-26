@@ -1,6 +1,30 @@
 #include "../include/Server.hpp"
 #include <unistd.h>
 #include <fcntl.h>
+#include <pwd.h>
+#include <grp.h>
+#include <sys/types.h>
+
+void dropPrivileges(const char* username) {
+    struct passwd* pw = getpwnam(username);
+    if (!pw) {
+        std::cerr << "Benutzer '" << username << "' nicht gefunden." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    if (setgid(pw->pw_gid) != 0) {
+        perror("setgid fehlgeschlagen");
+        exit(EXIT_FAILURE);
+    }
+
+    if (setuid(pw->pw_uid) != 0) {
+        perror("setuid fehlgeschlagen");
+        exit(EXIT_FAILURE);
+    }
+
+    std::cout << "Rechte erfolgreich abgegeben auf Benutzer " << username
+              << " (UID=" << pw->pw_uid << ", GID=" << pw->pw_gid << ")" << std::endl;
+}
 
 
 std::vector<struct pollfd>* g_poll_fds_ptr = nullptr;
@@ -69,6 +93,7 @@ void WebServer::openServerSockets() // all these throw statements should be clea
 		int listenreturn = listen(listening_poll.fd, SOMAXCONN);
 		if (listenreturn < 0)
 			throw std::runtime_error("Could not listen");
+		dropPrivileges("kkuhn");
 		listening_poll.events = POLLIN;
 		listening_poll.revents = 0;
 		poll_fds.push_back(listening_poll);

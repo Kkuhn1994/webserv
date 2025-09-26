@@ -8,7 +8,6 @@ server {
 	root /var/www/example.com;
 	index index.html;
 
-	error_page 403 /www/errorPages/error403.html;
 
     location /api {
         autoindex off;

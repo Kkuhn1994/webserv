@@ -1,5 +1,7 @@
 #!/bin/bash
 
+##nginx_cgi_test
+
 echo "🧪 Comprehensive CGI Server Testing"
 echo "=================================="
 
