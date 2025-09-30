@@ -60,7 +60,8 @@ class WebServer
 		std::string					full_request;
 		std::vector<struct pollfd>	poll_fds;
 		std::vector<int>			listening_socket_fds;
-		std::map<int, Client>		_clients;
+		// std::map<int, Client>		_clients;
+		std::vector<Client>		_clients;
 		int							_server;
 		int							_n_server;
 

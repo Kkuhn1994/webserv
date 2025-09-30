@@ -126,7 +126,8 @@ void WebServer::loopPollEvents()
 					// std::cout << "received new client stored at " << it->fd << "\n";
 					Client c(it->fd, config, index);
 					// std::cout << "original " << c.get_socket() << "\n";
-					this->_clients.insert(std::make_pair(c.get_socket(), c));
+					// this->_clients.insert(std::make_pair(c.get_socket(), c));
+					_clients.push_back(c);
 					// std::cout << "received new client stored at " << it->fd << " its fd is " << c.get_socket() << "\n";
 					poll_fds.push_back(c.get_pollfd());
 					break ;
@@ -134,15 +135,16 @@ void WebServer::loopPollEvents()
 				else
 				{
 					std::cout << "old\n";
-					this->_clients[it->fd].recieve_packet(it->fd);
-					if (this->_clients[it->fd].get_request().length() > 0)
-						this->_clients[it->fd].get_request();
+					this->_clients[0].recieve_packet(it->fd);
+					std::cout << "old2\n";
+					if (this->_clients[0].get_request().length() > 0)
+						this->_clients[0].get_request();
 
-					this->_clients[it->fd].sendResponse();
+					this->_clients[0].sendResponse();
 					// this->_clients[it->fd].clear();
 					close(poll_fds.back().fd);
-					poll_fds.pop_back();
-					this->_clients.erase(it->fd);
+					poll_fds.erase(poll_fds.begin() + _n_server);
+					this->_clients.erase(_clients.begin());
 					std::cout << "response send\n";
 					break;		
 				}
