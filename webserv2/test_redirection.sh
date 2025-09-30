@@ -43,69 +43,93 @@ run_test() {
 
 echo -e "\n🚀 Starting Redirection Tests..."
 
-# Test 1: Basic Site
-run_test "Basic Site" \
-    'curl -s -H "Host: example.com" http://localhost:80/api' \
-    "index3.html"
+ITERATIONS=10
+START_TIME=$(date +%s%N)
 
-# Test 2: One Redirection
-run_test "One Redirection" \
-    'curl -s -H "Host: example.com" http://localhost:80/ -i' \
-    "HTTP/1.1 302 Found"
 
-# Test 2.1: One Redirection
-run_test "One Redirection" \
-    'curl -s -H "Host: example.com" http://localhost:80/ -i' \
-    "Location: http://localhost/api"
+for (( i = 1; i <= ITERATIONS; i++ )); do
+    # Test 1: Basic Site
+    run_test "Basic Site" \
+        'curl -s -H "Host: example.com" http://localhost:80/api' \
+        "index3.html"
 
-# Test 2.2: One Redirection
-run_test "One Redirection" \
-    'curl -s -H "Host: example.com" http://localhost:80/ -L' \
-    "index3.html"
+    # Test 2: One Redirection
+    run_test "One Redirection" \
+        'curl -s -H "Host: example.com" http://localhost:80/ -i' \
+        "HTTP/1.1 302 Found"
 
-# Test 3: Two Redirection
-run_test "Two Redirection" \
-    'curl -s -H "Host: example.com" http://localhost:80/ -i' \
-    "HTTP/1.1 302 Found"
+    # Test 2.1: One Redirection
+    run_test "One Redirection" \
+        'curl -s -H "Host: example.com" http://localhost:80/ -i' \
+        "Location: http://localhost/api"
 
-# Test 3.1: Two Redirection
-run_test "Two Redirection" \
-    'curl -s -H "Host: example.com" http://localhost:80/ -i' \
-    "Location: http://localhost/"
+    # Test 2.2: One Redirection
+    run_test "One Redirection" \
+        'curl -s -H "Host: example.com" http://localhost:80/ -L' \
+        "index3.html"
 
-# Test 3.2: Two Redirection
-run_test "Two Redirection" \
-    'curl -s -H "Host: example.com" http://localhost:80/doubleRedirect -L --max-redirs 1 -i' \
-    "HTTP/1.1 302 Found"
+    # Test 3: Two Redirection
+    run_test "Two Redirection" \
+        'curl -s -H "Host: example.com" http://localhost:80/ -i' \
+        "HTTP/1.1 302 Found"
 
-# Test 3.3: Two Redirection
-run_test "Two Redirection" \
-    'curl -s -H "Host: example.com" http://localhost:80/doubleRedirect -L --max-redirs 1 -i' \
-    "Location: http://localhost/"
+    # Test 3.1: Two Redirection
+    run_test "Two Redirection" \
+        'curl -s -H "Host: example.com" http://localhost:80/ -i' \
+        "Location: http://localhost/"
 
-# Test 3.4: Two Redirection
-run_test "Two Redirection" \
-    'curl -s -H "Host: example.com" http://localhost:80/doubleRedirect -L' \
-    "index3.html"
+    # Test 3.2: Two Redirection
+    run_test "Two Redirection" \
+        'curl -s -H "Host: example.com" http://localhost:80/doubleRedirect -L --max-redirs 1 -i' \
+        "HTTP/1.1 302 Found"
 
-# Test 4: 1 Redirection + CGI
-run_test "Redirection and CGI" \
-    'curl -s -H "Host: example.com" http://localhost:80/redirectAndCGI/test.php -L' \
-    "Hello from WebServ CGI"
+    # Test 3.3: Two Redirection
+    run_test "Two Redirection" \
+        'curl -s -H "Host: example.com" http://localhost:80/doubleRedirect -L --max-redirs 1 -i' \
+        "Location: http://localhost/"
 
-# Test 4: 1 Redirection + 404 Not Found
-run_test "Redirection + 404 Not Found" \
-    'curl -s -H "Host: example.com" http://localhost:80/redirectAndCGI/unavaillable.php -L -i' \
-    "HTTP/1.1 404 Not Found"
+    # Test 3.4: Two Redirection
+    run_test "Two Redirection" \
+        'curl -s -H "Host: example.com" http://localhost:80/doubleRedirect -L' \
+        "index3.html"
 
-# Test 4: 1 Redirection + 404 Not Found
-run_test "404 Not Found Default" \
-    'curl -s -H "Host: example.com" http://localhost:80/api/unavaillable.php -i' \
-    "404 Not Found Default"
+    # Test 4: 1 Redirection + CGI
+    run_test "Redirection and CGI" \
+        'curl -s -H "Host: example.com" http://localhost:80/redirectAndCGI/test.php -L' \
+        "Hello from WebServ CGI"
 
-# Test 4: 1 Redirection + 404 Not Found
-run_test "403 Not Found Default" \
-    'curl -s -H "Host: example.com" http://localhost:80/api/permissionDenied.html -i' \
-    "403 Forbidden Default"
+    # Test 4: 1 Redirection + 404 Not Found
+    run_test "Redirection + 404 Not Found" \
+        'curl -s -H "Host: example.com" http://localhost:80/redirectAndCGI/unavaillable.php -L -i' \
+        "HTTP/1.1 404 Not Found"
+
+    # Test 4: 1 Redirection + 404 Not Found
+    run_test "404 Not Found Default" \
+        'curl -s -H "Host: example.com" http://localhost:80/api/unavaillable.php -i' \
+        "404 Not Found Default"
+
+    # Test 4: 1 Redirection + 404 Not Found
+    run_test "403 Not Found Default" \
+        'curl -s -H "Host: example.com" http://localhost:80/api/permissionDenied.html -i' \
+        "403 Forbidden Default"
+done
+
+END_TIME=$(date +%s%N)
+RUNTIME=$((END_TIME - START_TIME))
+
+
+echo -e "\n📊 Test Results Summary"
+echo "======================="
+echo -e "Passed: ${GREEN}$PASSED${NC}"
+echo -e "Failed: ${RED}$((TOTAL - PASSED))${NC}"
+echo -e "Total:  $TOTAL"
+
+if [ $PASSED -eq $TOTAL ]; then
+    echo -e "\n🎉 ${GREEN}All tests passed! Your CGI system is working perfectly!${NC}"
+else
+    echo -e "\n⚠️  ${YELLOW}Some tests failed. Check the output above for details.${NC}"
+
+echo -e "⏱️ Total Runtime: ${RUNTIME} ns"
+fi
 
 

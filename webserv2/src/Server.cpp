@@ -61,6 +61,7 @@ void WebServer::openServerSockets() // all these throw statements should be clea
 	g_poll_fds_ptr = &poll_fds;
 
 	std::signal(SIGINT, handle_sigint);
+	
 	for (std::vector<ServerBlock>::iterator it = config.serverBlock.begin(); it != config.serverBlock.end(); it++)
 	{
 		struct pollfd listening_poll;
@@ -109,7 +110,7 @@ void WebServer::loopPollEvents()
 	int index = 0;
 	while(1)
 	{
-		std::cout << "loop\n";
+		// std::cout << "loop\n";
 		// add shutdown check, implemented to also be called from destructor
 		int poll_count = poll(poll_fds.data(), poll_fds.size(), 1000); // we should probably not give a negative timeout for poll
         if (poll_count < 0)
@@ -118,15 +119,15 @@ void WebServer::loopPollEvents()
 		for (std::vector<struct pollfd>::iterator it = poll_fds.begin(); it != poll_fds.end(); it++)
 		{
 			if (it->revents & POLLIN) {
-				std::cout << "in\n";
+				// std::cout << "in\n";
 				if (it < poll_fds.begin() + _n_server)
 				{
-					std::cout << "new\n";
-					std::cout << "received new client stored at " << it->fd << "\n";
+					// std::cout << "new\n";
+					// std::cout << "received new client stored at " << it->fd << "\n";
 					Client c(it->fd, config, index);
-					std::cout << "original " << c.get_socket() << "\n";
+					// std::cout << "original " << c.get_socket() << "\n";
 					this->_clients.insert(std::make_pair(c.get_socket(), c));
-					std::cout << "received new client stored at " << it->fd << " its fd is " << c.get_socket() << "\n";
+					// std::cout << "received new client stored at " << it->fd << " its fd is " << c.get_socket() << "\n";
 					poll_fds.push_back(c.get_pollfd());
 					break ;
 				}
@@ -138,7 +139,8 @@ void WebServer::loopPollEvents()
 						this->_clients[it->fd].get_request();
 
 					this->_clients[it->fd].sendResponse();
-					this->_clients[it->fd].clear();
+					// this->_clients[it->fd].clear();
+					close(poll_fds.back().fd);
 					poll_fds.pop_back();
 					this->_clients.erase(it->fd);
 					std::cout << "response send\n";

@@ -17,7 +17,11 @@ Client::Client(int poll_fd_fd, ConfService& server_config, int index) : index(in
 
 	newClientSocket = accept(poll_fd_fd, (struct sockaddr*)&client_addr, &addrlen);
 	if (newClientSocket == -1)
+	{
+		std::cout << "Accept error\n";
 		throw std::runtime_error("Accept error");
+	}
+
 
 	setsockopt(newClientSocket, IPPROTO_TCP, SO_REUSEADDR, &opt, sizeof(opt));
 
@@ -106,7 +110,7 @@ void		Client::sendResponse()
     // std::cout << "get_header(\"example_key\"): " << req.get_header("example_key") << std::endl;
     // std::cout << "get_req(): " << req.get_request() << std::endl;
 	// std::cout << req.get_path() << "\n";
-	std::string  response;
+	std::string  response ="";
 	if(statusCode == 302)
 	{
 		response =  "HTTP/1.1 302 Found\r\n"
@@ -114,7 +118,7 @@ void		Client::sendResponse()
 					"Content-Length: 0\r\n"
 					"Connection: close\r\n"
 					"\r\n";
-		std::cout << response << "\n";
+		// std::cout << response << "\n";
 	}
 	else
 	{
@@ -125,15 +129,18 @@ void		Client::sendResponse()
 			"\r\n" +
 			responseBody;
 	}
-	char* c_response = new char[response.length() + 1];
-	std::strcpy(c_response, response.c_str());
-	if (sendto(newClientSocket, c_response, response.length(), 0,
+	// char* c_response = new char[response.length() + 1];
+	// std::strcpy(c_response, response.c_str());
+	// response = "hallo";
+	std::vector<char> c_response(response.begin(), response.end());
+c_response.push_back('\0'); 
+	if (sendto(newClientSocket, c_response.data(), response.length(), 0,
                (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
         perror("Fehler beim Senden der Antwort");
         // close(client_fd);
         return ;
     }
-    // close(client_fd); !!! fds closen
+    // close(client_fd);
 	// req.clear();
 	std::cout << "response send 1\n";
 }
@@ -153,7 +160,7 @@ std::string replacePath(std::string sbegin, const std::string& s1, const std::st
     size_t pos = 0;
 	size_t pos2 = 0;
 	std::string slash = "";
-	std::cout << sbegin << "replacePathsbegin\n";
+	// std::cout << sbegin << "replacePathsbegin\n";
 	if(s1.length() == 1)
 	{
 		return s2 + sbegin;
@@ -284,108 +291,111 @@ return html1 + "\n" + href + "\n" + html2;
 
 void		Client::buildResponseBody()
 {
-LocationRedirect *location;
+LocationRedirect *locationPointer;
+LocationRedirect location;
 std::string finalPath;
 // std::cout << req.get_path() << " path\n";
 std::string path = req.get_path();
 std::string isRedirected = "no";
 std::cout << "build response begin\n";
 	std::cout << "redirect loop\n";
-	location = _server_config.serverBlock[index].getBestMatchingLocation(path);
-	if(location)
-	{
-		std::string rootPath = choseRootPath(location);
-		std::string locationUrl = location->getUrl();
-		std::cout << locationUrl << "\n";
-		std::cout << locationUrl.find_last_of('/') << "\n";
-		finalPath = replacePath(req.get_path(), locationUrl, rootPath);
-		std::vector<std::string> restrictedMethods = location->getRestrictedMethods();
-		for(std::vector<std::string>::iterator it = restrictedMethods.begin(); it != restrictedMethods.end(); it ++)
-		{
-			if(*it.base() == req.get_method())
-			{
-				statusCode = location->getStatusCode();
-				responseBody = location->getMessage();
-				return;
-			}
-		}
-		isRedirected = location->isRedirected();
-		std::cout << isRedirected << " is redirected\n";
-		if(isRedirected != "")
-		{
-			redirectTo = "http://localhost" + replacePath(req.get_path(), location->getUrl(), isRedirected);
-			statusCode = 302;
-			return;
-		}
+	std::cout << index << "\n";
+	// locationPointer = _server_config.serverBlock[0].getBestMatchingLocation(path);
+	// if(locationPointer)
+	// {
+	// 	location = *locationPointer;
+	// 	std::string rootPath = choseRootPath(locationPointer);
+	// 	std::string locationUrl = location.getUrl();
+	// 	std::cout << locationUrl << "\n";
+	// 	std::cout << locationUrl.find_last_of('/') << "\n";
+	// 	finalPath = replacePath(req.get_path(), locationUrl, rootPath);
+	// 	std::vector<std::string> restrictedMethods = location.getRestrictedMethods();
+	// 	for(std::vector<std::string>::iterator it = restrictedMethods.begin(); it != restrictedMethods.end(); it ++)
+	// 	{
+	// 		if(*it.base() == req.get_method())
+	// 		{
+	// 			statusCode = location.getStatusCode();
+	// 			responseBody = location.getMessage();
+	// 			return;
+	// 		}
+	// 	}
+	// 	isRedirected = location.isRedirected();
+	// 	std::cout << isRedirected << " is redirected\n";
+	// 	if(isRedirected != "")
+	// 	{
+	// 		redirectTo = "http://localhost" + replacePath(req.get_path(), location.getUrl(), isRedirected);
+	// 		statusCode = 302;
+	// 		return;
+	// 	}
 
-		std::cout << "location found\n";
-		// std::ifstream responseFile("tmp/www");
-		std::cout << finalPath << "\n";
-		finalPath = parameterSplit(finalPath)[0];
-		std::cout << finalPath << "\n";
-		struct stat st;
-		if (stat(finalPath.substr(1, finalPath.length() - 1).c_str(), &st) != 0) {
-			// Datei existiert nicht → 404
-			    if (errno == EACCES) {
-        statusCode = 403;
-    } else if (errno == ENOENT) {
-        statusCode = 404;
-    } else {
-        statusCode = 500;
-    }	
-			loadErrorSite();
-			return;
-		}
-		std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
-		if (!responseFile)
-		{
+	// 	std::cout << "location found\n";
+	// 	// std::ifstream responseFile("tmp/www");
+	// 	std::cout << finalPath << "\n";
+	// 	finalPath = parameterSplit(finalPath)[0];
+	// 	std::cout << finalPath << "\n";
+	// 	struct stat st;
+	// 	if (stat(finalPath.substr(1, finalPath.length() - 1).c_str(), &st) != 0) {
+	// 		// Datei existiert nicht → 404
+	// 		    if (errno == EACCES) {
+    //     statusCode = 403;
+    // } else if (errno == ENOENT) {
+    //     statusCode = 404;
+    // } else {
+    //     statusCode = 500;
+    // }	
+	// 		loadErrorSite();
+	// 		return;
+	// 	}
+	// 	std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
+	// 	if (!responseFile)
+	// 	{
 		
-			statusCode = 403;
-			loadErrorSite();
-			return;
-		}
-		else if (std::filesystem::is_directory(finalPath.substr(1, finalPath.length() - 1)))
-		{
-			std::cout << "test5\n";
-			std::vector<std::string> indexFiles = location->getIndexFiles();
-			if(indexFiles.size() == 0)
-			{
-				std::cout << "test6\n";
-				indexFiles = _server_config.serverBlock[index].getIndexFiles();
-			}
-			if(!iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles))
-			{
-				if(location->getDirectoryListing())
-				{
-					// Directory listing - simplified for C++11 compatibility
-					responseBody += "<h1>Directory Listing</h1>";
-					responseBody += "<p>Directory listing functionality simplified</p>";
-				}
-				else
-				{
-					statusCode = 403;
-					loadErrorSite();
-				}
-			}
-			return;
-		}
-		if(!CGI(responseFile, finalPath))
-		{
-			std::ifstream file(finalPath);
-			extractFile(file);
-		}
-		std::cout << "test6\n";
+	// 		statusCode = 403;
+	// 		loadErrorSite();
+	// 		return;
+	// 	}
+	// 	else if (std::filesystem::is_directory(finalPath.substr(1, finalPath.length() - 1)))
+	// 	{
+	// 		std::cout << "test5\n";
+	// 		std::vector<std::string> indexFiles = location.getIndexFiles();
+	// 		if(indexFiles.size() == 0)
+	// 		{
+	// 			std::cout << "test6\n";
+	// 			indexFiles = _server_config.serverBlock[index].getIndexFiles();
+	// 		}
+	// 		if(!iterateIndexFiles(finalPath.substr(1, finalPath.length() - 1) + "/", indexFiles))
+	// 		{
+	// 			if(location.getDirectoryListing())
+	// 			{
+	// 				// Directory listing - simplified for C++11 compatibility
+	// 				responseBody += "<h1>Directory Listing</h1>";
+	// 				responseBody += "<p>Directory listing functionality simplified</p>";
+	// 			}
+	// 			else
+	// 			{
+	// 				statusCode = 403;
+	// 				loadErrorSite();
+	// 			}
+	// 		}
+	// 		return;
+	// 	}
+	// 	if(!CGI(responseFile, finalPath))
+	// 	{
+	// 		std::ifstream file(finalPath);
+	// 		extractFile(file);
+	// 	}
+	// 	std::cout << "test6\n";
 			
 			
 
-	}
-	if(req.get_path() == "/")
-	{
-		std::cout << "standard index files\n";
-		std::vector<std::string> indexFiles = _server_config.serverBlock[index].getIndexFiles();
-		//try index files
-		iterateIndexFiles("webcontent/", indexFiles);
-	}
+	// }
+	// if(req.get_path() == "/")
+	// {
+	// 	std::cout << "standard index files\n";
+	// 	std::vector<std::string> indexFiles = _server_config.serverBlock[0].getIndexFiles();
+	// 	//try index files
+	// 	iterateIndexFiles("webcontent/", indexFiles);
+	// }
 	std::cout << "request\n";
 
 }

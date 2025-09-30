@@ -1,4 +1,4 @@
-#include "utility.hpp"
+#include "../include/utility.hpp"
 #include <cctype>
 
 std::vector<std::string> split(const std::string &str)

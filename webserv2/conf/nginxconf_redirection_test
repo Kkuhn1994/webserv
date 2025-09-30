@@ -26,7 +26,7 @@ server {
 		root /tmp/www;
 
 		index index2.html;
-		return 302 http://localhost:80/api;
+		#return 302 http://localhost:80/api;
 		# try_files $uri $uri/ =404;
 	}
 
