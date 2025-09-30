@@ -1,6 +1,0 @@
-    location /doubleRedirect {
-		autoindex on;
-		root /tmp/www;
-		index index1.html;
-		return 302 http://localhost:80/;
-	}

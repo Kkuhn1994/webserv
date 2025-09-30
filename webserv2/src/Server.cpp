@@ -91,7 +91,7 @@ void WebServer::openServerSockets() // all these throw statements should be clea
 			throw std::runtime_error("Could not set socket options");
 		if (bind(listening_poll.fd, (struct sockaddr*)&(_address), sizeof(_address)) < 0)
 			throw std::runtime_error("Error binding server socket port");
-		int listenreturn = listen(listening_poll.fd, SOMAXCONN);
+		int listenreturn = listen(listening_poll.fd, 4096);
 		if (listenreturn < 0)
 			throw std::runtime_error("Could not listen");
 		dropPrivileges("kkuhn");
@@ -141,8 +141,9 @@ void WebServer::loopPollEvents()
 						this->_clients[0].get_request();
 
 					this->_clients[0].sendResponse();
+					std::cout << "response send\n";
 					// this->_clients[it->fd].clear();
-					close(poll_fds.back().fd);
+					close(poll_fds[_n_server].fd);
 					poll_fds.erase(poll_fds.begin() + _n_server);
 					this->_clients.erase(_clients.begin());
 					std::cout << "response send\n";
