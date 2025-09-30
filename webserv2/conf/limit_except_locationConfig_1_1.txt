@@ -1,0 +1,5 @@
+        limit_except  POST PUT DELETE {
+    
+            deny all;
+            return 403 "<html><body><h1>403 Forbidden</h1></body></html>";           
+        }
