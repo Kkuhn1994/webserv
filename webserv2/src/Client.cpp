@@ -97,7 +97,7 @@ std::string	Client::get_request(){
 void		Client::sendResponse()
 {
 	req.add(_request);
-	std::cout << "Request :" << _request << "\n";
+	// std::cout << "Request :" << _request << "\n";
 	statusCode = 200;
 	buildResponseBody();
 	// std::cout << "get_path(): " << req.get_path() << std::endl;
@@ -226,6 +226,40 @@ void Client::loadErrorSite()
 	}
 }
 
+std::string parseBody(std::string request)
+{
+	std::vector<std::string> lines;
+    std::istringstream iss(request);
+    std::string line;
+	std::cout << "Request :" << request << "\n";
+    // Request in Zeilen aufteilen
+    while (std::getline(iss, line)) {
+        lines.push_back(line);
+    }
+
+    // Nach der leeren Zeile suchen (Body-Start)
+    size_t body_start = lines.size();
+    for (size_t i = 0; i < lines.size(); ++i) {
+        if (is_whitespace_only(lines[i])) {
+            body_start = i;
+            break;
+        }
+    }
+	std::string body = "";
+    // Body ausgeben (falls keine leere Zeile, nimm den gesamten String – aber im Beispiel gibt's eine)
+    if (body_start < lines.size()) {
+        std::cout << "Extrahierter POST-Body:" << std::endl;
+        for (size_t i = body_start; i < lines.size(); ++i) {
+            std::cout << lines[i] << std::endl;
+			body += lines[i];
+        }
+    } else {
+        std::cout << "Kein Body gefunden." << std::endl;
+    }
+
+    return body;
+}
+
 bool Client::CGI(std::ifstream &responseFile, std::string finalPath)
 {
 	// Check if file is a CGI script
@@ -237,10 +271,19 @@ bool Client::CGI(std::ifstream &responseFile, std::string finalPath)
 		// Extract query string from path
 		std::string fullPath = req.get_path();
 		std::string queryString = "";
-		size_t queryPos = fullPath.find('?');
-		if (queryPos != std::string::npos) {
-			queryString = fullPath.substr(queryPos + 1);
+		if(req.get_method() == "GET")
+		{
+			size_t queryPos = fullPath.find('?');
+			if (queryPos != std::string::npos) {
+				queryString = fullPath.substr(queryPos + 1);
+			}
 		}
+		else if (req.get_method() == "POST"){
+				queryString = parseBody(_request);
+				std::cout << "Query String: \n";
+				std::cout << queryString << "\n";
+		}
+
 		
 		// Create CGI request
 		CGIRequest cgiRequest;

@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 #define C_GRAY "\e[5;2;38;240;23;23m"
 #define C_RED "\e[38;2;123;23;23m"
@@ -20,3 +21,4 @@ std::string extractBlock(std::ifstream &in, int brace_count);
 bool starts_with_location(const std::string &line);
 bool starts_with_server(const std::string &line);
 bool starts_with_limit_except (const std::string &line);
+bool is_whitespace_only(const std::string& line);
