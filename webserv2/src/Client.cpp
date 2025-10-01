@@ -96,14 +96,6 @@ std::string	Client::get_request(){
 
 void		Client::sendResponse()
 {
-	const char* _request =
-    "GET /api HTTP/1.1\r\n"
-    "Host: 127.0.0.1\r\n"
-    "Accept: */*\r\n"
-    "Accept-Encoding: gzip, deflate\r\n"
-    "User-Agent: Mozilla/5.0 (pc-x86_64-linux-gnu) Siege/4.1.7\r\n"
-    "Connection: close\r\n"
-    "\r\n"; 
 	req.add(_request);
 	std::cout << "Request :" << _request << "\n";
 	statusCode = 200;
