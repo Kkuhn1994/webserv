@@ -1,6 +1,0 @@
-    location /redirectAndCGI {
-		autoindex on;
-		root /tmp;
-		index index1.html;
-		return 302 http://localhost:80/api;
-	}

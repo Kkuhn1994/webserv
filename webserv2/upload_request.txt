@@ -1,0 +1,95 @@
+sting</p></body></html>" > ../tmp/www/stress_test.html
+
+echo -e "\n📋 Test 1: Basic Availability Test (Short)"
+echo "Running siege for 10 seconds with 10 concurrent users..."
+siege_output=$(siege -c 10 -t 10s -b http://localhost:80/api/stress_test.html 2>&1)
+
+availability=$(echo "$siege_output" | grep "Availability" | awk '{print $2}' | sed 's/%//')
+echo "Availability: ${availability}%"
+
+if (( $(echo "$availability > 99.5" | bc -l) )); then
+    echo -e "${GREEN}✅ PASS - Availability > 99.5%${NC}"
+else
+    echo -e "${RED}❌ FAIL - Availability: ${availability}% (should be > 99.5%)${NC}"
+fi
+
+echo -e "\n📋 Test 2: Memory Leak Check"
+echo "Monitor the server process memory usage during this test..."
+echo "Starting longer stress test (30 seconds)..."
+
+# Get server PID
+server_pid=$(pgrep webserv | head -1)
+if [ -n "$server_pid" ]; then
+    echo "Server PID: $server_pid"
+    initial_memory=$(ps -o rss= -p $server_pid)
+    echo "Initial memory usage: ${initial_memory}KB"
+    
+    # Run stress test
+    siege -c 5 -t 30s -b http://localhost:80/api/stress_test.html > /dev/null 2>&1 &
+    siege_pid=$!
+    
+    # Monitor memory every 5 seconds
+    for i in {1..6}; do
+        sleep 5
+        if ps -p $server_pid > /dev/null; then
+            current_memory=$(ps -o rss= -p $server_pid)
+            echo "Memory after ${i}x5s: ${current_memory}KB"
+        else
+            echo -e "${RED}❌ Server crashed during stress test${NC}"
+            break
+        fi
+    done
+    
+    wait $siege_pid
+    
+    final_memory=$(ps -o rss= -p $server_pid)
+    echo "Final memory usage: ${final_memory}KB"
+    
+    # Check for significant memory increase (more than 50% growth might indicate leak)
+    if [ $final_memory -gt $((initial_memory * 3 / 2)) ]; then
+        echo -e "${YELLOW}⚠️  WARNING - Significant memory increase detected${NC}"
+    else
+        echo -e "${GREEN}✅ PASS - Memory usage stable${NC}"
+    fi
+else
+    echo -e "${RED}❌ Could not find webserv process${NC}"
+fi
+
+echo -e "\n📋 Test 3: Connection Handling"
+echo "Testing with many concurrent connections..."
+siege_output=$(siege -c 50 -r 10 http://localhost:80/api/stress_test.html 2>&1)
+
+transactions=$(echo "$siege_output" | grep "Transactions" | awk '{print $2}')
+failed=$(echo "$siege_output" | grep "Failed" | awk '{print $3}')
+
+echo "Transactions: $transactions"
+echo "Failed: $failed"
+
+if [ "$failed" = "0" ]; then
+    echo -e "${GREEN}✅ PASS - No failed connections${NC}"
+else
+    echo -e "${RED}❌ FAIL - $failed failed connections${NC}"
+fi
+
+echo -e "\n📋 Test 4: Infinite Siege Test (Manual)"
+echo -e "${BLUE}Manual test instructions:${NC}"
+echo "Run: siege -b http://localhost:80/api/stress_test.html"
+echo "Let it run for several minutes and monitor:"
+echo "- Server should not crash"
+echo "- Memory should not grow indefinitely"
+echo "- No hanging connections"
+echo "- Press Ctrl+C to stop when satisfied"
+
+echo -e "\n📊 Stress Test Summary"
+echo "====================="
+echo "- Availability should be > 99.5%"
+echo "- Memory usage should be stable"
+echo "- No failed connections on normal load"
+echo "- Server should handle siege indefinitely"
+
+# Cleanup
+rm -f ../tmp/www/stress_test.html
+--------------------------Ys2pCEeizeJ9gN1G4o4lrw--
+
+
+curl  -F "upload=@test_stress.sh" http://localhost/upload.php
