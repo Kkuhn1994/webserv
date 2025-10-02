@@ -6,6 +6,12 @@
 #include <sys/types.h>
 
 void dropPrivileges(const char* username) {
+    // Check if we're running as root (UID 0)
+    if (getuid() != 0) {
+        std::cout << "Not running as root - skipping privilege drop" << std::endl;
+        return;
+    }
+
     struct passwd* pw = getpwnam(username);
     if (!pw) {
         std::cerr << "Benutzer '" << username << "' nicht gefunden." << std::endl;
@@ -90,11 +96,21 @@ void WebServer::openServerSockets() // all these throw statements should be clea
 		if (optreturn != 0)
 			throw std::runtime_error("Could not set socket options");
 		if (bind(listening_poll.fd, (struct sockaddr*)&(_address), sizeof(_address)) < 0)
-			throw std::runtime_error("Error binding server socket port");
+		{
+			std::cerr << "[WBSRV] ERROR: Error binding server socket port " << it.base()->getPort() 
+					  << " (probably already in use) - skipping this server block" << std::endl;
+			close(listening_poll.fd);
+			continue; // Skip this server block and continue with the next one
+		}
 		int listenreturn = listen(listening_poll.fd, 4096);
 		if (listenreturn < 0)
-			throw std::runtime_error("Could not listen");
-		// dropPrivileges("kkuhn");
+		{
+			std::cerr << "[WBSRV] ERROR: Could not listen on port " << it.base()->getPort() 
+					  << " - skipping this server block" << std::endl;
+			close(listening_poll.fd);
+			continue; // Skip this server block and continue with the next one
+		}
+		dropPrivileges("rwegat");
 		listening_poll.events = POLLIN;
 		listening_poll.revents = 0;
 		poll_fds.push_back(listening_poll);
@@ -103,6 +119,13 @@ void WebServer::openServerSockets() // all these throw statements should be clea
 		std::cout << "Socket " << _n_server << " (FD " << listening_poll.fd
 				  << ") is listening on: " << "edit host here" << ":" << it.base()->getPort() << std::endl;
 	}
+	
+	// Check if at least one server started successfully
+	if (_n_server == 0) {
+		throw std::runtime_error("[WBSRV] FATAL: No servers could be started - all ports are in use or configuration is invalid");
+	}
+	
+	std::cout << "[WBSRV] Successfully started " << _n_server << " server(s)" << std::endl;
 }
 
 void WebServer::loopPollEvents()

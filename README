@@ -1,0 +1,8 @@
+What is still wrong:
+
+- [ ] HTTP status codes: method validation and error handling
+- [ ] path resolution: Non-existent paths should return 404, not redirect
+- [ ] method restrictions: Check configuration and return 405/403 for restricted methods
+- [ ] CGI POST handling: Ensure POST data reaches CGI scripts
+- [ ] body size limits: Check request body size against configuration
+- [ ] Setup multiple servers: Configure and bind to multiple ports
