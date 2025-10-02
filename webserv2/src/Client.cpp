@@ -301,7 +301,7 @@ std::string isRedirected = "no";
 std::cout << "build response begin\n";
 	std::cout << "redirect loop\n";
 	std::cout << index << "\n";
-	locationPointer = _server_config.serverBlock[0].getBestMatchingLocation(path);
+	locationPointer = _server_config.serverBlock[index].getBestMatchingLocation(path);
 	if(locationPointer)
 	{
 		location = *locationPointer;
@@ -336,21 +336,21 @@ std::cout << "build response begin\n";
 		std::cout << finalPath << "\n";
 		struct stat st;
 		if (stat(finalPath.substr(1, finalPath.length() - 1).c_str(), &st) != 0) {
-			// Datei existiert nicht → 404
-			    if (errno == EACCES) {
-        statusCode = 403;
-    } else if (errno == ENOENT) {
-        statusCode = 404;
-    } else {
-        statusCode = 500;
-    }	
+			// File doesn't exist
+			if (errno == EACCES) {
+				statusCode = 403;
+			} else if (errno == ENOENT) {
+				statusCode = 404;
+			} else {
+				statusCode = 500;
+			}	
 			loadErrorSite();
 			return;
 		}
 		std::ifstream responseFile(finalPath.substr(1, finalPath.length() - 1));
 		if (!responseFile)
 		{
-		
+			// File exists but can't be opened (permission denied)
 			statusCode = 403;
 			loadErrorSite();
 			return;
@@ -383,20 +383,30 @@ std::cout << "build response begin\n";
 		}
 		if(!CGI(responseFile, finalPath))
 		{
-			std::ifstream file(finalPath);
-			extractFile(file);
+			std::ifstream file(finalPath.substr(1, finalPath.length() - 1));
+			responseBody = extractFile(file);
 		}
 		std::cout << "test6\n";
 			
 			
 
 	}
-	if(req.get_path() == "/")
+	else
 	{
-		std::cout << "standard index files\n";
-		std::vector<std::string> indexFiles = _server_config.serverBlock[0].getIndexFiles();
-		//try index files
-		iterateIndexFiles("webcontent/", indexFiles);
+		// No location matched - use default handling
+		if(req.get_path() == "/")
+		{
+			std::cout << "standard index files\n";
+			std::vector<std::string> indexFiles = _server_config.serverBlock[index].getIndexFiles();
+			//try index files
+			iterateIndexFiles("webcontent/", indexFiles);
+		}
+		else
+		{
+			// Path doesn't match any location and isn't root - 404
+			statusCode = 404;
+			loadErrorSite();
+		}
 	}
 	std::cout << "request\n";
 
