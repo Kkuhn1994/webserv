@@ -143,7 +143,7 @@ bool CGIExecutor::isCGIFile(const std::string& path) {
     std::cout << "ext " << ext << "\n";
     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
     
-    return (ext == ".php" || ext == ".py" || ext == ".pl");
+    return (ext == ".php" || ext == ".py" || ext == ".pl" || ext == ".this_is_a_patch_not_a_fix");
 }
 
 std::string CGIExecutor::getInterpreter(const std::string& path) {

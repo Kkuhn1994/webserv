@@ -8,7 +8,7 @@
 Client::Client()
 {
     reset_receiver();
-    std::cout << C_GREE << "Client created empty" << C_NONE << "\n";
+    //std::cout << C_GREE << "Client created empty" << C_NONE << "\n";
 }
 Client::Client(int poll_fd_fd, ConfService& server_config, int index) : index(index)
 {
@@ -30,12 +30,12 @@ Client::Client(int poll_fd_fd, ConfService& server_config, int index) : index(in
 	_poll_fd.revents = 0;
 	_server_config = server_config;
     reset_receiver();
-    std::cout << C_GREE << "Client created" << C_NONE << "\n";
+    //std::cout << C_GREE << "Client created" << C_NONE << "\n";
 }
 
 Client::~Client()
 {
-    std::cout << C_RED << "Client destroyed" << C_NONE << "\n";
+    //std::cout << C_RED << "Client destroyed" << C_NONE << "\n";
 }
 
 
@@ -54,7 +54,6 @@ void	Client::clear()
 int	Client::recieve_packet(int fd)
 {
 	// basically get_next_line
-	std::cout << "rec\n";
 	char request_chunk[PACKAGE_SIZE];
 	memset(request_chunk, 0, PACKAGE_SIZE);
 	ssize_t bytes_read = recv(fd, request_chunk, PACKAGE_SIZE, MSG_DONTWAIT);
@@ -66,9 +65,9 @@ int	Client::recieve_packet(int fd)
 		return (0); // dead client lal remove from map und so
 	}
 	_request.append(request_chunk);
-	if (bytes_read == 0 || strlen(request_chunk) < PACKAGE_SIZE)
+	if (bytes_read == 0 || strlen(request_chunk) < PACKAGE_SIZE - 1)
 		_request_received = true;
-	std::cout << "received Packet " << bytes_read << "\n";
+	//std::cout << "received Packet " << bytes_read << "\n" << request_chunk << "\n";
 	return (bytes_read);
 }
 
@@ -94,10 +93,17 @@ std::string	Client::get_request(){
 	return ("");
 }
 
+bool Client::has_request()
+{
+	return _request_received;
+}
+
+
+
 void		Client::sendResponse()
 {
 	req.add(_request);
-	// std::cout << "Request :" << _request << "\n";
+	 std::cout << "Request :\n" << C_GRAY << _request << C_NONE << "\n";
 	statusCode = 200;
 	buildResponseBody();
 	// std::cout << "get_path(): " << req.get_path() << std::endl;
@@ -239,7 +245,7 @@ std::string parseBody(std::string request)
 
     // Nach der leeren Zeile suchen (Body-Start)
     size_t body_start = lines.size();
-    for (size_t i = 0; i < lines.size(); ++i) {
+    for (size_t i = 0; i < lines.size(); i++) {
         if (is_whitespace_only(lines[i])) {
             body_start = i;
             break;
@@ -249,10 +255,11 @@ std::string parseBody(std::string request)
     // Body ausgeben (falls keine leere Zeile, nimm den gesamten String – aber im Beispiel gibt's eine)
     if (body_start < lines.size()) {
         std::cout << "Extrahierter POST-Body:" << std::endl;
-        for (size_t i = body_start; i < lines.size(); ++i) {
+        for (size_t i = body_start; i < lines.size() - 1; ++i) {
             std::cout << lines[i] << std::endl;
 			body += lines[i];
         }
+		std::cout << C_NONE;
     } else {
         std::cout << "Kein Body gefunden." << std::endl;
     }
@@ -264,6 +271,7 @@ bool Client::CGI(std::ifstream &responseFile, std::string finalPath)
 {
 	// Check if file is a CGI script
 	std::string filePath = finalPath.substr(1, finalPath.length() - 1);
+	std::cout << filePath << "debug\n";
 	CGIExecutor cgiExecutor;
 	if (cgiExecutor.isCGIFile(filePath)) {
 		std::cout << "Processing CGI file: " << filePath << std::endl;
@@ -280,8 +288,9 @@ bool Client::CGI(std::ifstream &responseFile, std::string finalPath)
 		}
 		else if (req.get_method() == "POST"){
 				queryString = parseBody(_request);
-				std::cout << "Query String: \n";
-				std::cout << queryString << "\n";
+				// std::cout << "Query String: \n";
+				// std::cout << queryString << "\n";
+				return true;
 		}
 
 		
@@ -338,7 +347,7 @@ void		Client::buildResponseBody()
 LocationRedirect *locationPointer;
 LocationRedirect location;
 std::string finalPath;
-// std::cout << req.get_path() << " path\n";
+ std::cout << req.get_path() << " path\n";
 std::string path = req.get_path();
 std::string isRedirected = "no";
 std::cout << "build response begin\n";
@@ -380,13 +389,13 @@ std::cout << "build response begin\n";
 		struct stat st;
 		if (stat(finalPath.substr(1, finalPath.length() - 1).c_str(), &st) != 0) {
 			// Datei existiert nicht → 404
-			    if (errno == EACCES) {
-        statusCode = 403;
-    } else if (errno == ENOENT) {
-        statusCode = 404;
-    } else {
-        statusCode = 500;
-    }	
+			if (errno == EACCES) {
+				statusCode = 403;
+			} else if (errno == ENOENT) {
+				statusCode = 404;
+			} else {
+				statusCode = 500;
+			}	
 			loadErrorSite();
 			return;
 		}
@@ -429,7 +438,7 @@ std::cout << "build response begin\n";
 			std::ifstream file(finalPath);
 			extractFile(file);
 		}
-		std::cout << "test6\n";
+		std::cout << "test7\n";
 			
 			
 

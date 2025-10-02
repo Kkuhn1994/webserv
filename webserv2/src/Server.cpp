@@ -94,7 +94,7 @@ void WebServer::openServerSockets() // all these throw statements should be clea
 		int listenreturn = listen(listening_poll.fd, 4096);
 		if (listenreturn < 0)
 			throw std::runtime_error("Could not listen");
-		dropPrivileges("kkuhn");
+		// dropPrivileges("kkuhn");
 		listening_poll.events = POLLIN;
 		listening_poll.revents = 0;
 		poll_fds.push_back(listening_poll);
@@ -134,20 +134,17 @@ void WebServer::loopPollEvents()
 				}
 				else
 				{
-					std::cout << "old\n";
 					this->_clients[0].recieve_packet(it->fd);
-					std::cout << "old2\n";
-					if (this->_clients[0].get_request().length() > 0)
-						this->_clients[0].get_request();
-
-					this->_clients[0].sendResponse();
-					std::cout << "response send\n";
-					// this->_clients[it->fd].clear();
-					close(poll_fds[_n_server].fd);
-					poll_fds.erase(poll_fds.begin() + _n_server);
-					this->_clients.erase(_clients.begin());
-					std::cout << "response send\n";
-					break;		
+					if (this->_clients[0].has_request())
+					{
+						this->_clients[0].sendResponse();
+						// this->_clients[it->fd].clear();
+						close(poll_fds[_n_server].fd);
+						poll_fds.erase(poll_fds.begin() + _n_server);
+						this->_clients.erase(_clients.begin());
+						std::cout << "response send\n";
+						break ;
+					}
 				}
 			} else if (it->revents & POLLERR) {
 				std::cout << "Socket error occurred.\n";
