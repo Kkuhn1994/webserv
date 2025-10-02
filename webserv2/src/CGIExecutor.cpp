@@ -143,7 +143,7 @@ bool CGIExecutor::isCGIFile(const std::string& path) {
     std::cout << "ext " << ext << "\n";
     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
     
-    return (ext == ".php" || ext == ".py" || ext == ".pl");
+    return (ext == ".php" || ext == ".py" || ext == ".pl" || ext == ".this_is_a_patch_not_a_fix");
 }
 
 std::string CGIExecutor::getInterpreter(const std::string& path) {
@@ -186,7 +186,7 @@ void CGIExecutor::setupEnvironment(const CGIRequest& request) {
     std::cout << request.queryString.c_str() << "\n";
     setenv("QUERY_STRING", request.queryString.c_str(), 1);
     setenv("CONTENT_LENGTH", std::to_string(request.body.length()).c_str(), 1);
-    std::string CGIFullPath = "/home/kkuhn/Desktop/webserv/webserv2/" + request.scriptPath;
+    std::string CGIFullPath = "/home/kkuhn/Desktop/webservfix/webserv2/" + request.scriptPath;
     setenv("SCRIPT_FILENAME", CGIFullPath.c_str(), 1);
     setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
     setenv("SERVER_SOFTWARE", "webserv/1.0", 1);

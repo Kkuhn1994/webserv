@@ -3,7 +3,7 @@
 #include "ServerBlock.hpp"
 
 #ifndef DEFAULT_CONFIG
-# define DEFAULT_CONFIG "conf/nginxconf"
+# define DEFAULT_CONFIG "conf/nginxconf2"
 #endif
 
 class ConfService

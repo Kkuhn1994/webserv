@@ -185,6 +185,11 @@ void deleteBlock(std::string fileName1, std::string fileName2, size_t locationSi
 	}
 }
 
+bool is_whitespace_only(const std::string& line) {
+    return std::all_of(line.begin(), line.end(),
+                       [](unsigned char ch) { return std::isspace(static_cast<int>(ch)); });
+}
+
 std::string ltrim(const std::string &s)
 {
     size_t start = 0;

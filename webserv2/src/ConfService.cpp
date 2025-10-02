@@ -6,12 +6,12 @@
 ConfService::ConfService()
 {
     this->path = DEFAULT_CONFIG;
-    std::cout << C_GREE << "ConfService created" << C_NONE << "\n";
+    //std::cout << C_GREE << "ConfService created" << C_NONE << "\n";
 }
 
 ConfService::~ConfService()
 {
-    std::cout << C_RED << "ConfService destroyed" << C_NONE << "\n";
+    //std::cout << C_RED << "ConfService destroyed" << C_NONE << "\n";
 }
 
 std::string ConfService::extractHostName(std::ifstream &serverFile)

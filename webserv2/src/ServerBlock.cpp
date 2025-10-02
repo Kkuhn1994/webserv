@@ -13,7 +13,7 @@ ServerBlock::ServerBlock(const int _port, const std::string _serverName,
 
 ServerBlock::~ServerBlock()
 {
-    std::cout << C_RED << "ServerBlock destroyed" << C_NONE << "\n";
+    //std::cout << C_RED << "ServerBlock destroyed" << C_NONE << "\n";
 }
 
 int ServerBlock::getPort() const

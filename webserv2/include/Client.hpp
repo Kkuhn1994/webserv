@@ -30,6 +30,7 @@ class Client
 
 		void			reset_receiver();
 		int				recieve_packet(int fd);
+        bool            has_request();
 
 		int				get_socket();
 		struct pollfd&	get_pollfd();
