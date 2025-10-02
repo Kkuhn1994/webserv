@@ -136,12 +136,12 @@ void		Client::sendResponse()
 			"\r\n" +
 			responseBody;
 	}
-	// char* c_response = new char[response.length() + 1];
-	// std::strcpy(c_response, response.c_str());
+	char* c_response = new char[response.length() + 1];
+	std::strcpy(c_response, response.c_str());
 	// response = "hallo";
-	std::vector<char> c_response(response.begin(), response.end());
-	c_response.push_back('\0'); 
-	if (sendto(newClientSocket, c_response.data(), response.length(), 0,
+	// std::vector<char> c_response(response.begin(), response.end());
+	// c_response.push_back('\0'); 
+	if (sendto(newClientSocket, c_response, response.length(), 0,
                (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
         perror("Fehler beim Senden der Antwort");
         // close(client_fd);
@@ -247,7 +247,8 @@ std::string parseBody(std::string request)
     size_t body_start = lines.size();
     for (size_t i = 0; i < lines.size(); i++) {
         if (is_whitespace_only(lines[i])) {
-            body_start = i;
+            body_start = i +1;
+			std::cout << "Body Parse Whitespace found\n";
             break;
         }
     }
@@ -255,7 +256,7 @@ std::string parseBody(std::string request)
     // Body ausgeben (falls keine leere Zeile, nimm den gesamten String – aber im Beispiel gibt's eine)
     if (body_start < lines.size()) {
         std::cout << "Extrahierter POST-Body:" << std::endl;
-        for (size_t i = body_start; i < lines.size() - 1; ++i) {
+        for (size_t i = body_start; i < lines.size(); ++i) {
             std::cout << lines[i] << std::endl;
 			body += lines[i];
         }
@@ -288,12 +289,12 @@ bool Client::CGI(std::ifstream &responseFile, std::string finalPath)
 		}
 		else if (req.get_method() == "POST"){
 				queryString = parseBody(_request);
-				// std::cout << "Query String: \n";
-				// std::cout << queryString << "\n";
-				return true;
+
+				// return true;
 		}
 
-		
+						std::cout << "Query String: \n";
+				std::cout << queryString << "\n";
 		// Create CGI request
 		CGIRequest cgiRequest;
 		cgiRequest.method = req.get_method();
@@ -356,6 +357,7 @@ std::cout << "build response begin\n";
 	locationPointer = _server_config.serverBlock[index].getBestMatchingLocation(path);
 	if(locationPointer)
 	{
+		std::cout << "location found\n";
 		location = *locationPointer;
 		std::string rootPath = choseRootPath(locationPointer);
 		std::string locationUrl = location.getUrl();
@@ -367,8 +369,8 @@ std::cout << "build response begin\n";
 		{
 			if(*it.base() == req.get_method())
 			{
-				statusCode = location.getStatusCode();
-				responseBody = location.getMessage();
+				statusCode = 403;
+				loadErrorSite();
 				return;
 			}
 		}
@@ -434,13 +436,10 @@ std::cout << "build response begin\n";
 		}
 		if(!CGI(responseFile, finalPath))
 		{
+			std::cout << "No CGI\n";
 			std::ifstream file(finalPath.substr(1, finalPath.length() - 1));
 			responseBody = extractFile(file);
 		}
-		std::cout << "test7\n";
-			
-			
-
 	}
 	else
 	{

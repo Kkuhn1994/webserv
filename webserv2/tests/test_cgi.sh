@@ -122,6 +122,11 @@ run_test "Non-existent CGI" \
     "curl -s http://localhost:80/api/nonexistent.php -w '%{http_code}'" \
     "404"
 
+echo -e "\n📋 Test 7: PHP CGI with GET parameters"
+run_test "PHP CGI with parameters" \
+    "curl -s 'http://localhost:80/api/parameter.php?name=test&age=123'" \
+    "<h1>Hello my name is test and i am 123 years old!</h1>"
+
 echo -e "\n📊 CGI Test Results"
 echo "=================="
 echo -e "Passed: ${GREEN}$PASSED${NC}"

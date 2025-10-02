@@ -186,7 +186,8 @@ void CGIExecutor::setupEnvironment(const CGIRequest& request) {
     std::cout << request.queryString.c_str() << "\n";
     setenv("QUERY_STRING", request.queryString.c_str(), 1);
     setenv("CONTENT_LENGTH", std::to_string(request.body.length()).c_str(), 1);
-    std::string CGIFullPath = "/home/kkuhn/Desktop/webservfix/webserv2/" + request.scriptPath;
+    std::string CGIFullPath = "/home/kkuhn/Desktop/webserv3/webserv2/" + request.scriptPath;
+    std::cout << CGIFullPath << "\n";
     setenv("SCRIPT_FILENAME", CGIFullPath.c_str(), 1);
     setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
     setenv("SERVER_SOFTWARE", "webserv/1.0", 1);

@@ -1,0 +1,7 @@
+
+    location /api {
+        autoindex off;
+        root /tmp/www;
+        index index3.html;
+
+    }

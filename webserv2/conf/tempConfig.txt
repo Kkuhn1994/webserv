@@ -1,0 +1,36 @@
+server {
+	listen 80;
+	
+	server_name example.com;
+	root /var/www/example.com;
+	index index.html;
+    location /api {
+        autoindex off;
+        root /tmp/www;
+        index index3.html;
+        limit_except  POST PUT DELETE {
+    
+            deny all;
+            return 403 "<html><body><h1>403 Forbidden</h1></body></html>";           
+        }
+    }
+	location / {
+		autoindex on;
+		root /tmp/www;
+		index index2.html;
+		return 302 http://localhost:80/api;
+		
+	}
+    location /doubleRedirect {
+		autoindex on;
+		root /tmp/www;
+		index index1.html;
+		return 302 http://localhost:80/;
+	}
+    location /redirectAndCGI {
+		autoindex on;
+		root /tmp;
+		index index1.html;
+		return 302 http://localhost:80/api;
+	}
+}

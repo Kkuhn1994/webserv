@@ -110,7 +110,7 @@ void WebServer::openServerSockets() // all these throw statements should be clea
 			close(listening_poll.fd);
 			continue; // Skip this server block and continue with the next one
 		}
-		dropPrivileges("rwegat");
+		dropPrivileges("kkuhn");
 		listening_poll.events = POLLIN;
 		listening_poll.revents = 0;
 		poll_fds.push_back(listening_poll);
