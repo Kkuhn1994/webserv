@@ -38,10 +38,15 @@ public:
     // Configuration
     void setTimeout(int seconds);
     void setMaxOutputSize(size_t bytes);
+    void setContentType(std::string contentType);
+
+     std::string requestBody;
     
 private:
     int m_timeout;
     size_t m_maxOutputSize;
+    std::string _content_type;
+   
     
     // Internal methods
     void setupEnvironment(const CGIRequest& request);

@@ -69,6 +69,8 @@ public:
     std::string get_header(std::string key);
     
     std::string get_request() const;
+
+    std::string get_content_type();
     
     // State checking
     int is_valid() const;
@@ -114,8 +116,9 @@ private:
     size_t      _current_chunk_size;
     
     // tracking
-    size_t      _total_request_size;
-    size_t      _header_count;
+    size_t           _total_request_size;
+    size_t           _header_count;
+    std::string      _content_type;
     
     // parsing
     int addp(std::string r);

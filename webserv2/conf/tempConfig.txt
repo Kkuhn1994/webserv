@@ -1,0 +1,35 @@
+server {
+	listen 80;
+	
+	server_name example.com;
+	root /var/www/example.com;
+	index index.html;
+	error_page 403 /www/errorPages/error403.html;
+location /api {
+	autoindex off;
+	root /tmp/www;
+	index index1.html;
+}
+	location / {
+		autoindex on;
+		root /tmp/www;
+		index index.html;
+		
+		
+	}
+	error_page 510 502 513 504 /5xx.html;
+		
+	location ~ \.php$ {
+        include fastcgi_params; 
+        fastcgi_pass unix:/var/run/fcgiwrap.socket; 
+		
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        
+        
+        
+        
+    }
+}
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }

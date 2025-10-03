@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cctype>
 #include <algorithm>
+#define YELLOW "\033[33m"
+#define RESET  "\033[0m"
 
 Request::Request() : _body(""), _path(""), _path_o(""), _method_enum(UNKNOWN), _method(""), _request(""), _version(""),
                      _line(""), _end(false), _valid(0), _error_code(REQ_OK), _content_length(0), _body_bytes_received(0), 
@@ -93,6 +95,9 @@ std::string Request::get_version() const
 
 std::string Request::get_header(std::string key)
 {
+          for (const auto& pair : _m) {
+        std::cout << YELLOW << pair.first << " => " << pair.second << RESET << std::endl;
+    }
     std::map<std::string, std::string>::iterator it = _m.find(key);
     if (it != _m.end())
         return it->second;
@@ -128,11 +133,16 @@ void Request::add(std::string new_request)
 {
     _valid = addp(new_request);
     
+    std::string content_type = get_header("content-type");
+    std::cout << "req add contenttype:" << content_type << "\n";
+    _content_type = content_type;
     if (_valid == 0 && _end == true && _method == "POST")
     {
-        std::string content_type = get_header("Content-Type");
+        std::string content_type = get_header("content-type");
+        std::cout << "req add contenttype:" << content_type << "\n";
+        _content_type = content_type;
         if (content_type != "text/plain" && 
-            content_type.find("multipart/form-data") != 0 && 
+            content_type.find("multipart/form-data") == std::string::npos && 
             content_type != "application/x-www-form-urlencoded")
         {
             _valid = 400;
@@ -575,4 +585,9 @@ void Request::set_error(RequestError error)
 {
     _error_code = error;
     _valid = static_cast<int>(error);
+}
+
+std::string Request::get_content_type()
+{
+    return _content_type;
 }
