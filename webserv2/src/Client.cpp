@@ -4,6 +4,8 @@
 #include <fstream>
 #include <string>
 #include <sys/stat.h>
+#include <unistd.h>
+
 
 Client::Client()
 {
@@ -392,6 +394,21 @@ std::cout << "build response begin\n";
 		// std::ifstream responseFile("tmp/www");
 		// std::cout << finalPath << "\n";
 		finalPath = parameterSplit(finalPath)[0];
+		if(req.get_method() == "DELETE")
+		{
+			if(access(finalPath.substr(1, finalPath.length() - 1).c_str(), F_OK))
+			{
+				statusCode = 404;
+				loadErrorSite();
+				return;
+			}
+			std::string removeString = "rm -f " + finalPath.substr(1, finalPath.length() - 1);
+			std::cout << removeString << "\n";
+			system(removeString.c_str());
+			statusCode = 202;
+			responseBody = "<h1>Successfully deleted";
+			return;
+		}
 		// std::cout << finalPath << "\n";
 		struct stat st;
 		if (stat(finalPath.substr(1, finalPath.length() - 1).c_str(), &st) != 0) {
