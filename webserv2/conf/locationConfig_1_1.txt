@@ -1,5 +1,0 @@
-location /api {
-	autoindex off;
-	root /tmp/www;
-	index index1.html;
-}
