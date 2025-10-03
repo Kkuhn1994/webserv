@@ -4,6 +4,10 @@
 #include <pwd.h>
 #include <grp.h>
 #include <sys/types.h>
+#include <cstdlib>
+
+// Forward declaration
+void cleanupTempFiles();
 
 void dropPrivileges(const char* username) {
     // Check if we're running as root (UID 0)
@@ -48,17 +52,42 @@ WebServer::WebServer(const std::string Path) : config_path(Path), full_request("
 
 WebServer::~WebServer()
 {
+	// Close any remaining sockets
+	for (auto& pfd : poll_fds) {
+		close(pfd.fd);
+	}
 	poll_fds.clear();
+	
+	// Clean up temporary files
+	cleanupTempFiles();
+}
+
+void cleanupTempFiles() {
+	std::cout << "Cleaning up temporary files...\n";
+	
+	// Remove auto-generated config files
+	system("rm -f conf/*ServerConfig* 2>/dev/null");
+	system("rm -f conf/*locationConfig* 2>/dev/null");
+	system("rm -f conf/*tempConfig* 2>/dev/null");
+	system("rm -f conf/*limit_except_locationConfig* 2>/dev/null");
+	
+	std::cout << "Temporary files cleaned up.\n";
 }
 
 void handle_sigint(int) {
 	std::cout << "\nSIGINT empfangen. Server wird heruntergefahren...\n";
+	
+	// Close all sockets
 	if (g_poll_fds_ptr) {
 		for (auto& pfd : *g_poll_fds_ptr) {
 			std::cout << "Schließe Socket FD: " << pfd.fd << "\n";
 			close(pfd.fd);
 		}
 	}
+	
+	cleanupTempFiles();
+	
+	std::cout << "Server shutdown complete.\n";
 	std::exit(0);
 }
 void WebServer::openServerSockets() // all these throw statements should be cleaned for potential leaks
@@ -110,7 +139,7 @@ void WebServer::openServerSockets() // all these throw statements should be clea
 			close(listening_poll.fd);
 			continue; // Skip this server block and continue with the next one
 		}
-		dropPrivileges("kkuhn");
+		dropPrivileges("rwegat");
 		listening_poll.events = POLLIN;
 		listening_poll.revents = 0;
 		poll_fds.push_back(listening_poll);
