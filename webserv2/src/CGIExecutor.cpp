@@ -28,6 +28,8 @@ CGIResponse CGIExecutor::execute(const CGIRequest& request) {
     if (interpreter.empty()) {
         return handleError("No interpreter found for: " + request.scriptPath);
     }
+
+    std::cout << "CGI execute 1\n";
     
     // Create pipes for communication
     int input_pipe[2], output_pipe[2], error_pipe[2];
@@ -37,14 +39,16 @@ CGIResponse CGIExecutor::execute(const CGIRequest& request) {
     
     // Fork process
     pid_t pid = fork();
+     std::cout << "CGI execute 2\n";
     if (pid == -1) {
         close(input_pipe[0]); close(input_pipe[1]);
         close(output_pipe[0]); close(output_pipe[1]);
         close(error_pipe[0]); close(error_pipe[1]);
         return handleError("Failed to fork process");
     }
-    std::cout << interpreter<< "\n" << std::flush;
+    // std::cout << interpreter<< "\n" << std::flush;
     if (pid == 0) {
+         std::cout << "CGI execute 3\n";
         // Child process: Execute CGI script
         
         // Set up environment
@@ -56,11 +60,17 @@ CGIResponse CGIExecutor::execute(const CGIRequest& request) {
         dup2(error_pipe[1], STDERR_FILENO);
         
         // Close all pipe ends
-        close(input_pipe[0]); close(input_pipe[1]);
+        
         close(output_pipe[0]); close(output_pipe[1]);
         close(error_pipe[0]); close(error_pipe[1]);
-        
+//         char buffer[1024];
+// ssize_t n;
+//         while ((n = read(STDIN_FILENO, buffer, sizeof(buffer))) > 0) {
+//     write(STDERR_FILENO, buffer, n); // Oder STDOUT_FILENO für normale Ausgabe
+// }
+// close(input_pipe[0]); close(input_pipe[1]);
         // Execute interpreter
+        // std::cin << "test\n";
         if(interpreter == "/usr/bin/php-cgi")
         {
             
@@ -76,23 +86,28 @@ CGIResponse CGIExecutor::execute(const CGIRequest& request) {
         perror("execl failed");
         exit(1);
     } else {
+         std::cout << "CGI execute 4\n";
         // Parent process: Communicate with CGI
         
         // Close unused pipe ends
         close(input_pipe[0]);
         close(output_pipe[1]);
         close(error_pipe[1]);
+        // write(input_pipe[1], request.body.c_str(), request.body.length());
         
         // Send request body to script
-        if (!request.body.empty()) {
-            writeToScript(input_pipe[1], request.body);
-        }
-        close(input_pipe[1]);
+        // if (!request.body.empty()) {
+        //     writeToScript(input_pipe[1], request.body);
+        // }
+        // close(input_pipe[1]);
+        write(input_pipe[1], requestBody.c_str(), requestBody.size());
+close(input_pipe[1]);
         
         // Read output with timeout
         std::string output = readFromPipe(output_pipe[0]);
         std::string errorOutput = readFromPipe(error_pipe[0]);
-        
+        std::cout << "\n\noutput:\n" << output << "\n";
+        std::cout << "output end \n";
         close(output_pipe[0]);
         close(error_pipe[0]);
         
@@ -146,6 +161,11 @@ bool CGIExecutor::isCGIFile(const std::string& path) {
     return (ext == ".php" || ext == ".py" || ext == ".pl" || ext == ".this_is_a_patch_not_a_fix");
 }
 
+void CGIExecutor::setContentType(std::string contentType)
+{
+    _content_type = contentType;
+}
+
 std::string CGIExecutor::getInterpreter(const std::string& path) {
     size_t dot = path.find_last_of('.');
     if (dot == std::string::npos) return "";
@@ -182,23 +202,28 @@ void CGIExecutor::setMaxOutputSize(size_t bytes) {
 void CGIExecutor::setupEnvironment(const CGIRequest& request) {
     // Standard CGI environment variables
     setenv("REDIRECT_STATUS", "200",1);
+    std::cout << "MEHTOD" << request.method.c_str() << "\n";
     setenv("REQUEST_METHOD", request.method.c_str(), 1);
-    std::cout << request.queryString.c_str() << "\n";
-    setenv("QUERY_STRING", request.queryString.c_str(), 1);
-    setenv("CONTENT_LENGTH", std::to_string(request.body.length()).c_str(), 1);
-    std::string CGIFullPath = "/home/kkuhn/webserv/webserv2/" + request.scriptPath;
-    std::cout << CGIFullPath << "\n";
+    // std::cout << request.queryString.c_str() << "\n";
+    // setenv("QUERY_STRING", request.queryString.c_str(), 1);
+    std:: cout << "setenv:" << _content_type.c_str() << "\n";
+    setenv("CONTENT_TYPE", _content_type.c_str(), 1);
+     std::cout << "Body Sting " << requestBody << "\n";
+    std::cout << "Content length " << std::to_string(requestBody.size()).c_str() << "\n";
+    setenv("CONTENT_LENGTH",  std::to_string(requestBody.size()).c_str(), 1);
+    std::string CGIFullPath = "/home/kkuhn/Desktop/webserv3/webserv2/" + request.scriptPath;
+    // std::cout << CGIFullPath << "\n";
     setenv("SCRIPT_FILENAME", CGIFullPath.c_str(), 1);
     setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
     setenv("SERVER_SOFTWARE", "webserv/1.0", 1);
     
     // Set content type from headers if available
-    auto contentType = request.headers.find("Content-Type");
-    if (contentType != request.headers.end()) {
-        setenv("CONTENT_TYPE", contentType->second.c_str(), 1);
-    } else {
-        setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 1);
-    }
+    // auto contentType = request.headers.find("Content-Type");
+    // if (contentType != request.headers.end()) {
+    //     setenv("CONTENT_TYPE", contentType->second.c_str(), 1);
+    // } else {
+    //     setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 1);
+    // }
     
     // Add custom environment variables
     for (const auto& env : request.env) {

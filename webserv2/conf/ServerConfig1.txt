@@ -1,0 +1,20 @@
+
+
+
+server {
+	listen 80;
+	
+	server_name example.com;
+	root /var/www/example.com;
+	index index.html;
+	error_page 403 /www/errorPages/error403.html;
+location /api {
+	autoindex off;
+	root /tmp/www;
+	index index1.html;
+}
+
+	error_page 510 502 513 504 /5xx.html;
+		
+
+}

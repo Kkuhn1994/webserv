@@ -103,7 +103,7 @@ bool Client::has_request()
 void		Client::sendResponse()
 {
 	req.add(_request);
-	 std::cout << "Request :\n" << C_GRAY << _request << C_NONE << "\n";
+	std::cout << "Request :\n\n" << C_GRAY << _request << C_NONE << "\n";
 	statusCode = 200;
 	buildResponseBody();
 	// std::cout << "get_path(): " << req.get_path() << std::endl;
@@ -175,7 +175,7 @@ std::string replacePath(std::string sbegin, const std::string& s1, const std::st
 	pos = sbegin.find(s1, pos);
 	pos2 = sbegin.find(s1, pos) + s1.length();
 	std::string result = sbegin.substr(0, pos) + s2 + sbegin.substr(pos2, sbegin.length() - pos2);
-	std::cout << result << "result\n";
+	// std::cout << result << "result\n";
     return result;
 }
 
@@ -237,49 +237,54 @@ std::string parseBody(std::string request)
 	std::vector<std::string> lines;
     std::istringstream iss(request);
     std::string line;
-	std::cout << "Request :" << request << "\n";
+	std::cout << "parse Body" << "\n";
     // Request in Zeilen aufteilen
     while (std::getline(iss, line)) {
         lines.push_back(line);
     }
 
-    // Nach der leeren Zeile suchen (Body-Start)
-    size_t body_start = lines.size();
-    for (size_t i = 0; i < lines.size(); i++) {
-        if (is_whitespace_only(lines[i])) {
-            body_start = i +1;
-			std::cout << "Body Parse Whitespace found\n";
-            break;
-        }
-    }
-	std::string body = "";
-    // Body ausgeben (falls keine leere Zeile, nimm den gesamten String – aber im Beispiel gibt's eine)
-    if (body_start < lines.size()) {
-        std::cout << "Extrahierter POST-Body:" << std::endl;
-        for (size_t i = body_start; i < lines.size(); ++i) {
-            std::cout << lines[i] << std::endl;
-			body += lines[i];
-        }
-		std::cout << C_NONE;
-    } else {
-        std::cout << "Kein Body gefunden." << std::endl;
-    }
 
+	std::string::size_type pos = request.find("\r\n\r\n");
+if (pos != std::string::npos) {
+    std::string body = request.substr(pos + 4); // +4, um über das \r\n\r\n hinwegzugehen
     return body;
+} else {
+    std::cout << "Kein Body gefunden." << std::endl;
+    return "";
+}
+	// std::string body = "";
+    // // Body ausgeben (falls keine leere Zeile, nimm den gesamten String – aber im Beispiel gibt's eine)
+    // if (body_start < lines.size()) {
+    //     std::cout << "Extrahierter POST-Body:" << std::endl;
+    //     for (size_t i = body_start; i < lines.size(); i++) {
+    //         std::cout << lines[i] << std::endl;
+	// 		body += lines[i];
+	// 		body += "\r\n";
+
+    //     }
+	// 	std::cout << C_NONE;
+	// 	std::cout << "parsed Body:\n" << body << "\n";
+    // } else {
+    //     std::cout << "Kein Body gefunden." << std::endl;
+    // }
+	// std::cout << "parsed Body:\n" << body << "\n";
+    // return body;
 }
 
 bool Client::CGI(std::ifstream &responseFile, std::string finalPath)
 {
 	// Check if file is a CGI script
 	std::string filePath = finalPath.substr(1, finalPath.length() - 1);
-	std::cout << filePath << "debug\n";
+	// std::cout << filePath << "debug\n";
 	CGIExecutor cgiExecutor;
+
 	if (cgiExecutor.isCGIFile(filePath)) {
 		std::cout << "Processing CGI file: " << filePath << std::endl;
-		
+		cgiExecutor.setContentType(req.get_content_type());
 		// Extract query string from path
 		std::string fullPath = req.get_path();
 		std::string queryString = "";
+		cgiExecutor.requestBody = parseBody(_request);
 		if(req.get_method() == "GET")
 		{
 			size_t queryPos = fullPath.find('?');
@@ -293,8 +298,8 @@ bool Client::CGI(std::ifstream &responseFile, std::string finalPath)
 				// return true;
 		}
 
-						std::cout << "Query String: \n";
-				std::cout << queryString << "\n";
+						// std::cout << "Query String: \n";
+				// std::cout << queryString << "\n";
 		// Create CGI request
 		CGIRequest cgiRequest;
 		cgiRequest.method = req.get_method();
@@ -303,7 +308,7 @@ bool Client::CGI(std::ifstream &responseFile, std::string finalPath)
 		cgiRequest.body = req.get_body();
 		
 		// Set up headers
-		cgiRequest.headers["Content-Type"] = req.get_header("Content-Type");
+		// cgiRequest.headers["Content-Type"] = req.get_header("Content-Type");
 		cgiRequest.headers["Host"] = req.get_header("Host");
 		
 		// Set up environment variables
@@ -385,9 +390,9 @@ std::cout << "build response begin\n";
 
 		std::cout << "location found\n";
 		// std::ifstream responseFile("tmp/www");
-		std::cout << finalPath << "\n";
+		// std::cout << finalPath << "\n";
 		finalPath = parameterSplit(finalPath)[0];
-		std::cout << finalPath << "\n";
+		// std::cout << finalPath << "\n";
 		struct stat st;
 		if (stat(finalPath.substr(1, finalPath.length() - 1).c_str(), &st) != 0) {
 			if (errno == EACCES) {
