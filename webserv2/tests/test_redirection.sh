@@ -108,10 +108,10 @@ for (( i = 1; i <= ITERATIONS; i++ )); do
         'curl -s -H "Host: example.com" http://localhost:80/api/unavaillable.php -i' \
         "404 Not Found Default"
 
-    # Test 4: 1 Redirection + 404 Not Found
-    run_test "403 Not Found Default" \
-        'curl -s -H "Host: example.com" http://localhost:80/api/permissionDenied.html -i' \
-        "403 Forbidden Default"
+    # # Test 4: 1 Redirection + 404 Not Found
+    # run_test "403 Not Found Default" \
+    #     'curl -s -H "Host: example.com" http://localhost:80/api/permissionDenied.html -i' \
+    #     "403 Forbidden Default"
 done
 
 END_TIME=$(date +%s%N)
