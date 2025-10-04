@@ -327,12 +327,12 @@ bool Client::CGI(std::ifstream &responseFile, std::string finalPath)
 			} else {
 				std::cerr << "CGI execution failed: " << cgiResponse.errorMessage << std::endl;
 				statusCode = 500;
-				responseBody = "Internal Server Error: CGI execution failed";
+				responseBody = "<h1>Internal Server Error Custom2: CGI execution failed</h1>";
 			}
 		} catch (const std::exception& e) {
 			std::cerr << "CGI execution error: " << e.what() << std::endl;
 			statusCode = 500;
-			responseBody = "Internal Server Error: CGI execution failed";
+			responseBody = "<h1>Internal Server Error Custom1: CGI execution failed</h1>";
 		}
 		return true;
 	} else {

@@ -95,7 +95,7 @@ class Client
         {410, "Gone"},
         {418, "I'm a teapot"}, // Easter egg ;-)
         
-        {500, "Internal Server Error"},
+        {500, "Internal Server Error Custom"},
         {501, "Not Implemented"},
         {502, "Bad Gateway"},
         {503, "Service Unavailable"},
